@@ -287,7 +287,7 @@
   'use strict';
 
   const ESPN_URL = 'https://site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard';
-  const REFRESH_SECONDS = 60;
+  const REFRESH_SECONDS = 180;
 
   // Pool scoring config
   const PENALTY_PER_MISSED_ROUND = 80; // raw strokes per missed round, per pool rules
@@ -600,13 +600,15 @@
     let pos = 0, lastTotal = null, tieGroup = [];
     function flushTie() {
       if (!tieGroup.length) return;
-      const label = (tieGroup.length > 1 ? 'T' : '') + (pos - tieGroup.length + 1);
-      tieGroup.forEach(e => { e.positionLabel = label; e.rankInt = pos - tieGroup.length + 1; });
+      const startPos = pos - tieGroup.length + 1;
+      const label = (tieGroup.length > 1 ? 'T' : '') + startPos;
+      tieGroup.forEach(e => { e.positionLabel = label; e.rankInt = startPos; });
       tieGroup = [];
     }
     entries.forEach(e => {
+      if (lastTotal !== null && e.total !== lastTotal) flushTie();
       pos += 1;
-      if (lastTotal === null || e.total !== lastTotal) { flushTie(); lastTotal = e.total; }
+      lastTotal = e.total;
       tieGroup.push(e);
     });
     flushTie();
