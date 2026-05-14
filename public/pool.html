@@ -337,6 +337,10 @@
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
+      .replace(/ø/g, 'o')
+      .replace(/æ/g, 'ae')
+      .replace(/ß/g, 'ss')
+      .replace(/ł/g, 'l')
       .replace(/[.']/g, '')
       .replace(/\s+/g, ' ')
       .trim();
