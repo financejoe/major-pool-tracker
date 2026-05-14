@@ -290,7 +290,9 @@
   const REFRESH_SECONDS = 180;
 
   // Pool scoring config
-  const PENALTY_PER_MISSED_ROUND = 80; // raw strokes per missed round, per pool rules
+  const COURSE_PAR = 70;                                       // Aronimink (update per tournament)
+  const PENALTY_RAW = 80;                                      // pool rule: missed round = automatic 80
+  const PENALTY_PER_MISSED_ROUND = PENALTY_RAW - COURSE_PAR;   // converted to to-par for display
   const TOTAL_ROUNDS = 4;
   const COUNT_BEST = 4;
   const TIER_COUNT = 6;
@@ -420,11 +422,11 @@
           if (m) toPar = (m[1] === '-' ? -1 : 1) * parseInt(m[2], 10);
         }
       } else {
-        // For OUT players, parse the frozen score they had when they exited
-        if (scoreStr === 'E') toPar = 0;
+        // OUT players: try to recover their frozen to-par; default to 0 if unparseable (rare)
+        if (scoreStr === 'E' || scoreStr === '') toPar = 0;
         else {
           const m = scoreStr.match(/^([+-]?)(\d+)$/);
-          if (m) toPar = (m[1] === '-' ? -1 : 1) * parseInt(m[2], 10);
+          toPar = m ? (m[1] === '-' ? -1 : 1) * parseInt(m[2], 10) : 0;
         }
       }
 
@@ -510,29 +512,23 @@
 
   // ---------- Pool-specific scoring ----------
   function effectiveScoreForPlayer(player) {
-    // Returns raw stroke total for the pool's scoring rules:
-    //   - For active players: sum of strokes across played rounds (including any in-progress round)
-    //   - For MC/WD/DQ players: completed rounds contribute their actual strokes, and any non-completed
-    //     round contributes exactly 80 strokes (pool rule)
-    // Returns null if no rounds played yet (player hasn't teed off).
+    // Returns effective score expressed as TO-PAR so values compare cleanly across
+    // players at different stages of the day:
+    //   - MC/WD/DQ: ESPN's frozen to-par + (missed rounds × PENALTY_PER_MISSED_ROUND)
+    //   - Active and started: ESPN's reported to-par
+    //   - Active but not teed off yet: null (excluded from totals)
     if (!player) return null;
 
     if (player.isOut) {
-      let total = 0;
-      player.rounds.forEach(r => {
-        if (r.holesPlayed === 18) total += r.strokes;
-        else total += PENALTY_PER_MISSED_ROUND;
-      });
-      return total;
+      const base = (player.toPar === null || player.toPar === undefined) ? 0 : player.toPar;
+      const missed = Math.max(0, TOTAL_ROUNDS - player.completedRounds);
+      return base + missed * PENALTY_PER_MISSED_ROUND;
     }
 
-    // Active player: sum strokes across played and in-progress rounds; null if nothing yet.
-    let total = 0;
-    let any = false;
-    player.rounds.forEach(r => {
-      if (r.strokes > 0) { total += r.strokes; any = true; }
-    });
-    return any ? total : null;
+    const hasStarted = (player.rounds || []).some(r => r.holesPlayed > 0);
+    if (!hasStarted) return null;
+    if (player.toPar === null || player.toPar === undefined) return null;
+    return player.toPar;
   }
 
   function computeEntry(participant) {
@@ -558,10 +554,14 @@
 
     // Sum the best COUNT_BEST scores
     let total = 0;
+    let countedCount = 0;
     let hasMissing = false;
     sortedByScore.slice(0, COUNT_BEST).forEach(r => {
       if (r.effective === null) hasMissing = true;
-      else total += r.effective;
+      else {
+        total += r.effective;
+        countedCount += 1;
+      }
     });
 
     return {
@@ -569,6 +569,7 @@
       picks: resolved,        // in tier order
       countedSet,
       total,
+      countedCount,
       hasMissing,
       hasUnmatched: resolved.some(r => r.player === null)
     };
@@ -588,10 +589,13 @@
     // Compute entries
     const entries = PARTICIPANTS.map(computeEntry);
 
-    // Sort by total ascending; entries with hasMissing go to bottom IF nobody has scores yet,
-    // but normally just sort by total.
+    // Sort by total ascending; participants with no players started yet sort to the bottom
     entries.sort((a, b) => {
-      // Entries with no scores at all (everyone hasn't teed off yet) tie at 0; that's fine
+      const aNone = a.countedCount === 0;
+      const bNone = b.countedCount === 0;
+      if (aNone && bNone) return a.participant.name.localeCompare(b.participant.name);
+      if (aNone) return 1;
+      if (bNone) return -1;
       if (a.total !== b.total) return a.total - b.total;
       return a.participant.name.localeCompare(b.participant.name);
     });
@@ -637,11 +641,13 @@
     const summary = document.createElement('div');
     summary.className = 'entry-summary';
     summary.dataset.participantName = entry.participant.name;
-    const totalDisplay = (entry.total === 0 && entry.hasMissing) ? '—' : String(entry.total);
+    const noScores = entry.countedCount === 0;
+    const totalDisplay = noScores ? '—' : fmtScore(entry.total);
+    const totalClass = noScores ? '' : scoreClass(entry.total);
     summary.innerHTML = `
       <span class="entry-pos">${entry.positionLabel}</span>
       <span class="entry-name">${escapeHtml(entry.participant.name)}</span>
-      <span class="entry-total">${totalDisplay}</span>
+      <span class="entry-total ${totalClass}">${totalDisplay}</span>
       <span class="entry-caret">▸</span>
     `;
     div.appendChild(summary);
@@ -680,8 +686,9 @@
         `;
       } else {
         const p = pick.player;
-        const effectiveDisplay = pick.effective === null ? '—' : String(pick.effective);
-        const effectiveClass = pick.effective === null ? '' : (p.isOut ? 's-cut' : '');
+        const effectiveDisplay = pick.effective === null ? '—' : fmtScore(pick.effective);
+        const effectiveClass = pick.effective === null ? ''
+          : (p.isOut ? 's-cut' : scoreClass(pick.effective));
         const thruCell = p.isOut ? '—' : (p.thru || (p.teeTime || '—'));
         const todayCell = p.isOut ? '—'
           : (p.todayScore ? `<span class="${todayClass(p.todayScore)}">${p.todayScore}</span>` : '—');
