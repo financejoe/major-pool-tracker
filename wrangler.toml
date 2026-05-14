@@ -1,0 +1,7 @@
+name = "major-pool-tracker"
+main = "src/index.js"
+compatibility_date = "2025-09-23"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
