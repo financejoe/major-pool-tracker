@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Major Pool" />
+<title>Major Pool Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0a0e0c;
+    --surface-2: #141a16;
+    --surface-3: #1c2521;
+    --border: #2a3530;
+    --border-soft: #1f2824;
+    --text: #e8e4d8;
+    --text-muted: #8a948e;
+    --text-faint: #545d57;
+    --accent: #c9a45c;
+    --under: #6fb583;
+    --over: #c97560;
+    --even: #b0b8b3;
+    --cut: #6a5240;
+    --shadow: 0 1px 0 rgba(255,255,255,0.03), 0 8px 24px rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Geist', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.45;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(ellipse at top, rgba(201, 164, 92, 0.06), transparent 50%),
+      radial-gradient(ellipse at bottom, rgba(111, 181, 131, 0.04), transparent 50%);
+  }
+  .app { max-width: 520px; margin: 0 auto; padding: 18px 16px 24px; }
+
+  .url-banner {
+    background: linear-gradient(180deg, rgba(201,164,92,0.10), rgba(201,164,92,0.04));
+    border: 1px solid rgba(201,164,92,0.25);
+    border-radius: 8px;
+    padding: 9px 11px;
+    margin-bottom: 14px;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .url-banner code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+  }
+  .url-banner button {
+    background: rgba(201,164,92,0.15);
+    border: 1px solid rgba(201,164,92,0.3);
+    color: var(--accent);
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .url-banner button:hover { background: rgba(201,164,92,0.25); }
+
+  .header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 10px; padding-bottom: 14px; margin-bottom: 14px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .tournament-name {
+    font-family: 'Instrument Serif', serif; font-style: italic;
+    font-size: 26px; line-height: 1.1; color: var(--text);
+    margin: 0; letter-spacing: 0.2px;
+  }
+  .tournament-meta {
+    font-size: 11px; color: var(--text-muted); margin-top: 4px;
+    letter-spacing: 0.4px; text-transform: uppercase;
+  }
+  .header-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .icon-btn {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text-muted); width: 30px; height: 30px;
+    border-radius: 6px; cursor: pointer; display: flex;
+    align-items: center; justify-content: center;
+    transition: all 0.15s ease;
+  }
+  .icon-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .icon-btn.spinning svg { animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .status-bar {
+    display: flex; justify-content: space-between;
+    font-size: 10.5px; color: var(--text-faint);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;
+  }
+  .status-bar .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--under); display: inline-block;
+    margin-right: 5px; vertical-align: middle;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .status-bar .dot.offline { background: var(--over); animation: none; }
+  .status-bar .dot.saving { background: var(--accent); }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  .pool {
+    background: linear-gradient(180deg, var(--surface-2), rgba(20,26,22,0.6));
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 14px 12px; margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .pool-header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 12px; margin-bottom: 10px;
+  }
+  .pool-name {
+    font-family: 'Instrument Serif', serif; font-size: 19px;
+    color: var(--text); background: transparent; border: none;
+    padding: 0; margin: 0; width: auto; flex: 1; min-width: 0;
+    outline: none; border-bottom: 1px dashed transparent;
+    transition: border-color 0.15s;
+  }
+  .pool-name:hover, .pool-name:focus { border-bottom-color: var(--border); }
+  .pool-total {
+    font-family: 'JetBrains Mono', monospace; font-size: 22px;
+    font-weight: 500; font-variant-numeric: tabular-nums;
+    line-height: 1; letter-spacing: -0.5px;
+  }
+  .pool-sub {
+    font-size: 10.5px; color: var(--text-faint);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 8px; display: flex; justify-content: space-between;
+  }
+  .pool-sub a {
+    color: var(--text-muted); cursor: pointer; text-decoration: none;
+    border-bottom: 1px dotted var(--border);
+  }
+  .pool-sub a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .roster { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .roster th {
+    text-align: left; font-weight: 500; color: var(--text-faint);
+    text-transform: uppercase; font-size: 9.5px; letter-spacing: 0.6px;
+    padding: 4px 4px 6px; border-bottom: 1px solid var(--border-soft);
+  }
+  .roster th.num, .roster td.num {
+    text-align: right; font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  .roster td { padding: 6px 4px; border-bottom: 1px solid var(--border-soft); }
+  .roster tr:last-child td { border-bottom: none; }
+  .roster .player-name { color: var(--text); font-weight: 400; }
+  .roster .pos {
+    color: var(--text-muted); font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px; width: 42px;
+  }
+  .roster .thru { color: var(--text-muted); width: 42px; }
+  .roster .today { width: 50px; }
+  .roster .total { width: 50px; font-weight: 500; }
+  .empty-row td {
+    color: var(--text-faint); text-align: center;
+    padding: 16px 4px; font-style: italic;
+  }
+  .roster tr.dropped { opacity: 0.42; }
+  .roster tr.dropped .total {
+    text-decoration: line-through;
+    text-decoration-color: var(--text-faint);
+    text-decoration-thickness: 1px;
+  }
+
+  .s-under { color: var(--under); }
+  .s-over { color: var(--over); }
+  .s-even { color: var(--even); }
+  .s-cut { color: var(--cut); font-size: 11px; }
+
+  .picker { display: none; margin-top: 10px; padding-top: 12px; border-top: 1px dashed var(--border); }
+  .picker.open { display: block; }
+  .picker-search {
+    width: 100%; background: var(--surface-3); border: 1px solid var(--border);
+    color: var(--text); font-family: inherit; font-size: 12.5px;
+    padding: 7px 10px; border-radius: 6px; outline: none; margin-bottom: 8px;
+  }
+  .picker-search:focus { border-color: var(--accent); }
+  .picker-list {
+    max-height: 220px; overflow-y: auto;
+    border: 1px solid var(--border-soft); border-radius: 6px;
+    background: rgba(0,0,0,0.2);
+  }
+  .picker-list::-webkit-scrollbar { width: 8px; }
+  .picker-list::-webkit-scrollbar-track { background: transparent; }
+  .picker-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  .picker-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 10px; cursor: pointer; font-size: 12px;
+    border-bottom: 1px solid var(--border-soft); user-select: none;
+  }
+  .picker-item:last-child { border-bottom: none; }
+  .picker-item:hover { background: var(--surface-3); }
+  .picker-item.selected {
+    background: rgba(201, 164, 92, 0.08); color: var(--accent);
+  }
+  .picker-item.disabled { opacity: 0.35; cursor: not-allowed; }
+  .picker-item .picker-score {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint);
+  }
+  .picker-count {
+    font-size: 10.5px; color: var(--text-muted); margin-top: 6px;
+    text-align: right; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  .settings {
+    display: none; margin-bottom: 14px; padding: 14px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .settings.open { display: block; }
+  .settings h3 {
+    font-family: 'Instrument Serif', serif; font-style: italic;
+    margin: 0 0 12px; font-size: 16px; font-weight: 400; color: var(--accent);
+  }
+  .settings-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px; font-size: 12px;
+  }
+  .settings-row label { color: var(--text-muted); flex: 1; }
+  .settings-row input {
+    background: var(--surface-3); border: 1px solid var(--border);
+    color: var(--text); font-family: inherit; font-size: 12px;
+    padding: 5px 8px; border-radius: 5px; width: 80px; text-align: right;
+    outline: none; font-variant-numeric: tabular-nums;
+  }
+  .settings-row input:focus { border-color: var(--accent); }
+  .settings-note { font-size: 10.5px; color: var(--text-faint); margin-top: 10px; line-height: 1.5; }
+
+  .loading, .error {
+    padding: 40px 20px; text-align: center;
+    color: var(--text-muted); font-size: 12px;
+  }
+  .error { color: var(--over); }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="url-banner" id="url-banner">
+    <span style="flex-shrink:0">Your tracker:</span>
+    <code id="url-display">—</code>
+    <button id="copy-url-btn">Copy</button>
+  </div>
+
+  <div class="header">
+    <div>
+      <h1 class="tournament-name" id="tournament-name">Loading…</h1>
+      <div class="tournament-meta" id="tournament-meta"></div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="refresh-btn" title="Refresh now">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+      </button>
+      <button class="icon-btn" id="settings-btn" title="Settings">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span><span class="dot" id="status-dot"></span><span id="status-text">Synced</span></span>
+    <span id="last-updated">—</span>
+  </div>
+
+  <div class="settings" id="settings-panel">
+    <h3>Settings</h3>
+    <div class="settings-row"><label>Pool 1: roster size</label><input type="number" id="size-1" min="1" max="20" /></div>
+    <div class="settings-row"><label>Pool 1: count best (drop rest)</label><input type="number" id="best-1" min="1" max="20" /></div>
+    <div class="settings-row"><label>Pool 2: roster size</label><input type="number" id="size-2" min="1" max="20" /></div>
+    <div class="settings-row"><label>Pool 2: count best (drop rest)</label><input type="number" id="best-2" min="1" max="20" /></div>
+    <div class="settings-row"><label>MC / WD penalty (vs par)</label><input type="number" id="mc-penalty" min="0" max="50" /></div>
+    <div class="settings-row"><label>Auto-refresh (seconds)</label><input type="number" id="refresh-seconds" min="30" max="3600" /></div>
+    <div class="settings-note">
+      Pool names are editable inline. "Count best" sets how many of your selected golfers actually count toward the total. Set it equal to roster size if all picks should count, or lower to drop the worst N. Picks save automatically to the cloud, keyed to your tracker URL above. Bookmark it to come back on any device.
+    </div>
+  </div>
+
+  <div id="content"></div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const ESPN_URL = 'https://site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard';
+  const API_BASE = '/api/picks';
+  const LOCAL_CACHE_PREFIX = 'pickCache:';
+  const LAST_ID_KEY = 'majorPool:lastId';
+
+  const DEFAULTS = {
+    pools: [
+      { id: 'p1', name: 'Pool A', size: 4, countBest: 4 },
+      { id: 'p2', name: 'Pool B', size: 6, countBest: 4 }
+    ],
+    mcPenalty: 10,
+    refreshSeconds: 180,
+    selectionsByEvent: {}
+  };
+
+  let userId = null;
+  let state = structuredClone(DEFAULTS);
+  let tournament = null;
+  let competitors = [];
+  let pickerOpenFor = null;
+  let refreshTimer = null;
+  let saveTimer = null;
+  let isLocalMode = false; // true if not deployed (file:// or no API)
+
+  // ---------- Identity ----------
+  function generateId() {
+    if (window.crypto && crypto.randomUUID) {
+      return crypto.randomUUID().replace(/-/g, '').slice(0, 16);
+    }
+    // Fallback
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let s = '';
+    for (let i = 0; i < 16; i++) s += chars[Math.floor(Math.random() * chars.length)];
+    return s;
+  }
+
+  function parseHashId() {
+    const m = window.location.hash.match(/[?#&]t=([a-zA-Z0-9_-]{8,64})/);
+    return m ? m[1] : null;
+  }
+
+  function setHashId(id) {
+    const target = `#t=${id}`;
+    if (window.location.hash !== target) {
+      history.replaceState(null, '', window.location.pathname + window.location.search + target);
+    }
+  }
+
+  function resolveUserId() {
+    let id = parseHashId();
+    if (id) {
+      try { localStorage.setItem(LAST_ID_KEY, id); } catch (_) {}
+      return id;
+    }
+    try {
+      const stored = localStorage.getItem(LAST_ID_KEY);
+      if (stored && /^[a-zA-Z0-9_-]{8,64}$/.test(stored)) {
+        setHashId(stored);
+        return stored;
+      }
+    } catch (_) {}
+    const fresh = generateId();
+    try { localStorage.setItem(LAST_ID_KEY, fresh); } catch (_) {}
+    setHashId(fresh);
+    return fresh;
+  }
+
+  function updateUrlBanner() {
+    const display = document.getElementById('url-display');
+    display.textContent = window.location.href;
+  }
+
+  // ---------- Persistence ----------
+  async function loadStateFromCloud() {
+    if (isLocalMode) return loadStateFromCache();
+    try {
+      const res = await fetch(`${API_BASE}/${userId}`, { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      if (data === null) {
+        // No record yet; try local cache as a migration path
+        const cached = loadStateFromCache();
+        if (cached.selectionsByEvent && Object.keys(cached.selectionsByEvent).length) {
+          // We have local picks, push them up
+          state = cached;
+          await saveToCloud();
+          return cached;
+        }
+        return structuredClone(DEFAULTS);
+      }
+      return { ...structuredClone(DEFAULTS), ...data };
+    } catch (e) {
+      console.warn('Cloud load failed, falling back to cache', e);
+      setSyncStatus('offline');
+      return loadStateFromCache();
+    }
+  }
+
+  function loadStateFromCache() {
+    try {
+      const raw = localStorage.getItem(LOCAL_CACHE_PREFIX + userId);
+      if (!raw) return structuredClone(DEFAULTS);
+      return { ...structuredClone(DEFAULTS), ...JSON.parse(raw) };
+    } catch (e) {
+      return structuredClone(DEFAULTS);
+    }
+  }
+
+  function saveStateLocal() {
+    try { localStorage.setItem(LOCAL_CACHE_PREFIX + userId, JSON.stringify(state)); }
+    catch (_) {}
+  }
+
+  function saveState() {
+    saveStateLocal();
+    if (isLocalMode) return;
+    setSyncStatus('saving');
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveToCloud, 600);
+  }
+
+  async function saveToCloud() {
+    if (isLocalMode) return;
+    try {
+      const res = await fetch(`${API_BASE}/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(state)
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      setSyncStatus('synced');
+    } catch (e) {
+      console.warn('Cloud save failed', e);
+      setSyncStatus('offline');
+    }
+  }
+
+  function setSyncStatus(status) {
+    const dot = document.getElementById('status-dot');
+    const text = document.getElementById('status-text');
+    dot.classList.remove('offline', 'saving');
+    if (status === 'synced') { text.textContent = isLocalMode ? 'Local only' : 'Synced'; }
+    else if (status === 'saving') { dot.classList.add('saving'); text.textContent = 'Saving…'; }
+    else if (status === 'offline') { dot.classList.add('offline'); text.textContent = 'Offline · local cache'; }
+  }
+
+  function getSelections(poolId) {
+    if (!tournament) return [];
+    const evt = state.selectionsByEvent[tournament.id];
+    return (evt && evt[poolId]) || [];
+  }
+  function setSelections(poolId, ids) {
+    if (!tournament) return;
+    if (!state.selectionsByEvent[tournament.id]) state.selectionsByEvent[tournament.id] = {};
+    state.selectionsByEvent[tournament.id][poolId] = ids;
+    saveState();
+  }
+
+  // ---------- Data fetch + normalize ----------
+  async function fetchScoreboard() {
+    setRefreshSpinning(true);
+    try {
+      const r = await fetch(ESPN_URL, { cache: 'no-store' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const json = await r.json();
+      processData(json);
+      state.lastFetch = Date.now();
+      saveStateLocal();
+      render();
+    } catch (e) {
+      console.error(e);
+      const content = document.getElementById('content');
+      if (!content.querySelector('.pool')) {
+        content.innerHTML =
+          '<div class="error">Could not reach ESPN. Will retry on next refresh.<br><span style="color:var(--text-faint);font-size:10.5px">' +
+          (e.message || '') + '</span></div>';
+      }
+    } finally {
+      setRefreshSpinning(false);
+      updateTimestamp();
+    }
+  }
+
+  function processData(json) {
+    const event = json.events && json.events[0];
+    if (!event) { tournament = null; competitors = []; return; }
+    tournament = {
+      id: event.id,
+      name: event.name,
+      shortName: event.shortName,
+      status: (event.status && event.status.type && event.status.type.description) || '',
+      venue: ((event.competitions || [])[0] || {}).venue || null
+    };
+    const comp = (event.competitions || [])[0];
+    const raw = (comp && comp.competitors) || [];
+
+    competitors = raw.map(c => {
+      const athlete = c.athlete || {};
+      const scoreStr = (c.score || '').toString();
+      const status = c.status || {};
+      const statusName = ((status.type && status.type.description) || '').toLowerCase();
+      const isCut = /cut|missed/.test(statusName) || /CUT|MC/i.test(scoreStr);
+      const isWD = /withdraw|wd/i.test(statusName) || /WD/i.test(scoreStr);
+      const isDQ = /disqualif|dq/i.test(statusName) || /DQ/i.test(scoreStr);
+      const isOut = isCut || isWD || isDQ;
+
+      let toPar = null;
+      if (!isOut) {
+        if (scoreStr === 'E' || scoreStr === '') toPar = 0;
+        else {
+          const m = scoreStr.match(/^([+-]?)(\d+)$/);
+          if (m) toPar = (m[1] === '-' ? -1 : 1) * parseInt(m[2], 10);
+        }
+      }
+
+      const lines = Array.isArray(c.linescores) ? c.linescores : [];
+      let todayScore = null, thru = null, teeTime = null, currentRound = null;
+      for (let i = lines.length - 1; i >= 0; i--) {
+        const ln = lines[i];
+        if (ln && ln.displayValue && ln.linescores && ln.linescores.length) {
+          currentRound = ln; break;
+        }
+      }
+      if (currentRound) {
+        todayScore = currentRound.displayValue;
+        const holes = currentRound.linescores || [];
+        thru = holes.length === 18 ? 'F' : String(holes.length);
+        try {
+          const stats = currentRound.statistics && currentRound.statistics.categories;
+          if (stats && stats[0] && stats[0].stats) {
+            const last = stats[0].stats[stats[0].stats.length - 1];
+            if (last && typeof last.displayValue === 'string' && /\d:\d\d/.test(last.displayValue)) {
+              teeTime = last.displayValue;
+            }
+          }
+        } catch (_) {}
+      }
+
+      return {
+        id: athlete.id || c.id,
+        name: athlete.displayName || athlete.fullName || 'Unknown',
+        shortName: athlete.shortName || athlete.displayName,
+        flag: athlete.flag && athlete.flag.href,
+        scoreStr, toPar, todayScore, thru, teeTime,
+        isOut,
+        outLabel: isCut ? 'MC' : (isWD ? 'WD' : (isDQ ? 'DQ' : null)),
+        order: c.order || 9999
+      };
+    });
+
+    const active = competitors.filter(c => c.toPar !== null && !c.isOut)
+      .slice().sort((a, b) => a.toPar - b.toPar);
+    let pos = 0, lastScore = null, tieGroup = [];
+    const posMap = {};
+    function flushTie() {
+      if (!tieGroup.length) return;
+      const label = (tieGroup.length > 1 ? 'T' : '') + (pos - tieGroup.length + 1);
+      tieGroup.forEach(id => { posMap[id] = label; });
+      tieGroup = [];
+    }
+    active.forEach(c => {
+      pos += 1;
+      if (lastScore === null || c.toPar !== lastScore) { flushTie(); lastScore = c.toPar; }
+      tieGroup.push(c.id);
+    });
+    flushTie();
+    competitors.forEach(c => { c.position = c.isOut ? c.outLabel : (posMap[c.id] || '—'); });
+  }
+
+  // ---------- Render ----------
+  function fmtScore(toPar) {
+    if (toPar === null || toPar === undefined) return '—';
+    if (toPar === 0) return 'E';
+    return (toPar > 0 ? '+' : '') + toPar;
+  }
+  function scoreClass(toPar) {
+    if (toPar === null || toPar === undefined) return '';
+    if (toPar < 0) return 's-under';
+    if (toPar > 0) return 's-over';
+    return 's-even';
+  }
+  function todayDisplayClass(d) {
+    if (!d) return '';
+    if (d === 'E' || d === '0') return 's-even';
+    if (d.startsWith('-')) return 's-under';
+    if (d.startsWith('+')) return 's-over';
+    return '';
+  }
+  function escapeHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, c =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function render() {
+    if (!tournament) {
+      document.getElementById('tournament-name').textContent = 'No active event';
+      document.getElementById('tournament-meta').textContent = '';
+      document.getElementById('content').innerHTML = '';
+      return;
+    }
+    document.getElementById('tournament-name').textContent = tournament.name;
+    let meta = '';
+    if (tournament.venue && tournament.venue.fullName) meta += tournament.venue.fullName;
+    if (tournament.status) meta += (meta ? ' · ' : '') + tournament.status;
+    document.getElementById('tournament-meta').textContent = meta;
+
+    const content = document.getElementById('content');
+    content.innerHTML = '';
+    state.pools.forEach(pool => content.appendChild(renderPool(pool)));
+  }
+
+  function renderPool(pool) {
+    const div = document.createElement('div');
+    div.className = 'pool';
+    div.dataset.poolId = pool.id;
+    const selectedIds = getSelections(pool.id);
+    const selectedPlayers = selectedIds.map(id => competitors.find(c => c.id === id)).filter(Boolean);
+
+    // Compute effective score per player: null = not yet teed off
+    const scored = selectedPlayers.map(p => {
+      let effective = null;
+      if (p.isOut) effective = state.mcPenalty;
+      else if (p.toPar !== null) effective = p.toPar;
+      return { player: p, effective };
+    });
+
+    // Sort ascending by effective score; nulls (no score yet) go last
+    const sorted = scored.slice().sort((a, b) => {
+      if (a.effective === null && b.effective === null) return 0;
+      if (a.effective === null) return 1;
+      if (b.effective === null) return -1;
+      return a.effective - b.effective;
+    });
+
+    // Top N count toward the pool total
+    const countN = Math.min(pool.countBest, sorted.length);
+    const countedIds = new Set();
+    let total = 0, hasMissing = false;
+    sorted.slice(0, countN).forEach(({ player, effective }) => {
+      countedIds.add(player.id);
+      if (effective === null) hasMissing = true;
+      else total += effective;
+    });
+    if (selectedIds.length < pool.size) hasMissing = true;
+
+    const totalClass = scoreClass(total);
+    const totalDisplay = selectedPlayers.length ? fmtScore(total) : '—';
+
+    const header = document.createElement('div');
+    header.className = 'pool-header';
+    header.innerHTML = `
+      <input type="text" class="pool-name" value="${escapeHtml(pool.name)}" data-pool="${pool.id}" />
+      <span class="pool-total ${totalClass}">${totalDisplay}</span>`;
+    div.appendChild(header);
+
+    const sub = document.createElement('div');
+    sub.className = 'pool-sub';
+    const bestLabel = pool.countBest < pool.size ? ` · best ${pool.countBest} count` : '';
+    sub.innerHTML = `
+      <span>${selectedPlayers.length} of ${pool.size} selected${bestLabel}${hasMissing ? ' · incomplete' : ''}</span>
+      <a data-toggle-picker="${pool.id}">${pickerOpenFor === pool.id ? 'Close picker' : 'Edit picks'}</a>`;
+    div.appendChild(sub);
+
+    const table = document.createElement('table');
+    table.className = 'roster';
+    table.innerHTML = `
+      <thead><tr><th>Player</th><th>Pos</th><th class="num">Thru</th><th class="num">Today</th><th class="num">Total</th></tr></thead>
+      <tbody></tbody>`;
+    const tbody = table.querySelector('tbody');
+
+    if (!selectedPlayers.length) {
+      const tr = document.createElement('tr');
+      tr.className = 'empty-row';
+      tr.innerHTML = `<td colspan="5">No picks yet — click "Edit picks" to add players</td>`;
+      tbody.appendChild(tr);
+    } else {
+      sorted.forEach(({ player: p }) => {
+        const isCounted = countedIds.has(p.id);
+        const tr = document.createElement('tr');
+        if (!isCounted) tr.className = 'dropped';
+        const totalCell = p.isOut
+          ? `<span class="s-cut">${p.outLabel} +${state.mcPenalty}</span>`
+          : `<span class="${scoreClass(p.toPar)}">${fmtScore(p.toPar)}</span>`;
+        const thruCell = p.isOut ? '—' : (p.thru || (p.teeTime ? p.teeTime : '—'));
+        const todayCell = p.isOut ? '—'
+          : (p.todayScore ? `<span class="${todayDisplayClass(p.todayScore)}">${p.todayScore}</span>` : '—');
+        tr.innerHTML = `
+          <td class="player-name">${escapeHtml(p.name)}</td>
+          <td class="pos">${p.position || '—'}</td>
+          <td class="num thru">${thruCell}</td>
+          <td class="num today">${todayCell}</td>
+          <td class="num total">${totalCell}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+    div.appendChild(table);
+
+    if (pickerOpenFor === pool.id) div.appendChild(renderPicker(pool));
+    return div;
+  }
+
+  function renderPicker(pool) {
+    const wrap = document.createElement('div');
+    wrap.className = 'picker open';
+    wrap.dataset.poolId = pool.id;
+    const search = document.createElement('input');
+    search.className = 'picker-search';
+    search.placeholder = 'Search field…';
+    search.dataset.searchFor = pool.id;
+    wrap.appendChild(search);
+    const list = document.createElement('div');
+    list.className = 'picker-list';
+    list.dataset.listFor = pool.id;
+    wrap.appendChild(list);
+    const count = document.createElement('div');
+    count.className = 'picker-count';
+    count.dataset.countFor = pool.id;
+    wrap.appendChild(count);
+    setTimeout(() => renderPickerList(pool.id, ''), 0);
+    return wrap;
+  }
+
+  function renderPickerList(poolId, query) {
+    const list = document.querySelector(`[data-list-for="${poolId}"]`);
+    const countEl = document.querySelector(`[data-count-for="${poolId}"]`);
+    if (!list) return;
+    const pool = state.pools.find(p => p.id === poolId);
+    const selected = new Set(getSelections(poolId));
+    const q = (query || '').toLowerCase().trim();
+    const filtered = competitors
+      .filter(c => !q || c.name.toLowerCase().includes(q))
+      .sort((a, b) => {
+        const sa = selected.has(a.id) ? 0 : 1;
+        const sb = selected.has(b.id) ? 0 : 1;
+        if (sa !== sb) return sa - sb;
+        const av = a.isOut ? 9999 : (a.toPar !== null ? a.toPar : 999);
+        const bv = b.isOut ? 9999 : (b.toPar !== null ? b.toPar : 999);
+        return av - bv;
+      });
+    list.innerHTML = '';
+    filtered.forEach(c => {
+      const isSel = selected.has(c.id);
+      const atLimit = !isSel && selected.size >= pool.size;
+      const div = document.createElement('div');
+      div.className = 'picker-item' + (isSel ? ' selected' : '') + (atLimit ? ' disabled' : '');
+      div.dataset.athleteId = c.id;
+      div.dataset.poolId = poolId;
+      const scoreLabel = c.isOut ? c.outLabel : fmtScore(c.toPar);
+      div.innerHTML = `
+        <span>${escapeHtml(c.name)}${isSel ? ' ✓' : ''}</span>
+        <span class="picker-score ${scoreClass(c.toPar)}">${scoreLabel}</span>`;
+      list.appendChild(div);
+    });
+    if (!filtered.length) {
+      list.innerHTML = '<div style="padding:14px;text-align:center;color:var(--text-faint);font-size:11.5px">No players match</div>';
+    }
+    countEl.textContent = `${selected.size} of ${pool.size} selected`;
+  }
+
+  function updateTimestamp() {
+    const el = document.getElementById('last-updated');
+    if (!state.lastFetch) { el.textContent = '—'; return; }
+    const d = new Date(state.lastFetch);
+    el.textContent = 'Updated ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function setRefreshSpinning(loading) {
+    const btn = document.getElementById('refresh-btn');
+    if (loading) btn.classList.add('spinning'); else btn.classList.remove('spinning');
+  }
+
+  function applySettingsToInputs() {
+    document.getElementById('size-1').value = state.pools[0].size;
+    document.getElementById('best-1').value = state.pools[0].countBest;
+    document.getElementById('size-2').value = state.pools[1].size;
+    document.getElementById('best-2').value = state.pools[1].countBest;
+    document.getElementById('mc-penalty').value = state.mcPenalty;
+    document.getElementById('refresh-seconds').value = state.refreshSeconds;
+  }
+
+  function scheduleRefresh() {
+    if (refreshTimer) clearInterval(refreshTimer);
+    const ms = Math.max(30, state.refreshSeconds || 180) * 1000;
+    refreshTimer = setInterval(fetchScoreboard, ms);
+  }
+
+  // ---------- Events ----------
+  document.getElementById('refresh-btn').addEventListener('click', fetchScoreboard);
+  document.getElementById('settings-btn').addEventListener('click', () => {
+    document.getElementById('settings-panel').classList.toggle('open');
+  });
+  document.getElementById('copy-url-btn').addEventListener('click', () => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = document.getElementById('copy-url-btn');
+      const original = btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(() => { btn.textContent = original; }, 1200);
+    }).catch(() => {});
+  });
+
+  ['size-1', 'best-1', 'size-2', 'best-2', 'mc-penalty', 'refresh-seconds'].forEach(id => {
+    document.getElementById(id).addEventListener('change', e => {
+      const v = parseInt(e.target.value, 10);
+      if (isNaN(v) || v < 1) return;
+      if (id === 'size-1') {
+        state.pools[0].size = v;
+        if (state.pools[0].countBest > v) state.pools[0].countBest = v;
+      }
+      else if (id === 'best-1') {
+        state.pools[0].countBest = Math.min(v, state.pools[0].size);
+      }
+      else if (id === 'size-2') {
+        state.pools[1].size = v;
+        if (state.pools[1].countBest > v) state.pools[1].countBest = v;
+      }
+      else if (id === 'best-2') {
+        state.pools[1].countBest = Math.min(v, state.pools[1].size);
+      }
+      else if (id === 'mc-penalty') state.mcPenalty = v;
+      else if (id === 'refresh-seconds') { state.refreshSeconds = v; scheduleRefresh(); }
+      applySettingsToInputs();
+      saveState();
+      render();
+    });
+  });
+
+  document.addEventListener('input', e => {
+    if (e.target.classList.contains('pool-name')) {
+      const poolId = e.target.dataset.pool;
+      const pool = state.pools.find(p => p.id === poolId);
+      if (pool) { pool.name = e.target.value; saveState(); }
+    }
+    if (e.target.dataset.searchFor) {
+      renderPickerList(e.target.dataset.searchFor, e.target.value);
+    }
+  });
+
+  document.addEventListener('click', e => {
+    const toggle = e.target.closest('[data-toggle-picker]');
+    if (toggle) {
+      const poolId = toggle.dataset.togglePicker;
+      pickerOpenFor = (pickerOpenFor === poolId) ? null : poolId;
+      render();
+      return;
+    }
+    const item = e.target.closest('.picker-item');
+    if (item && !item.classList.contains('disabled')) {
+      const poolId = item.dataset.poolId;
+      const athleteId = item.dataset.athleteId;
+      const pool = state.pools.find(p => p.id === poolId);
+      let sel = getSelections(poolId).slice();
+      if (sel.includes(athleteId)) sel = sel.filter(x => x !== athleteId);
+      else { if (sel.length >= pool.size) return; sel.push(athleteId); }
+      setSelections(poolId, sel);
+      render();
+      pickerOpenFor = poolId;
+      render();
+      const search = document.querySelector(`[data-search-for="${poolId}"]`);
+      if (search) search.focus();
+    }
+  });
+
+  window.addEventListener('hashchange', () => {
+    // If hash ID changed, reload state for the new user
+    const newId = parseHashId();
+    if (newId && newId !== userId) { userId = newId; init(); }
+  });
+
+  // ---------- Boot ----------
+  function migrateState(s) {
+    // Ensure each pool has a valid countBest (for records saved before this field existed)
+    if (Array.isArray(s.pools)) {
+      s.pools.forEach(p => {
+        if (typeof p.countBest !== 'number' || p.countBest < 1 || p.countBest > p.size) {
+          p.countBest = p.size;
+        }
+      });
+    }
+    return s;
+  }
+
+  async function init() {
+    // Detect if we're running without a backend (file:// or no API)
+    isLocalMode = window.location.protocol === 'file:';
+    userId = resolveUserId();
+    updateUrlBanner();
+    setSyncStatus('synced');
+    state = migrateState(await loadStateFromCloud());
+    applySettingsToInputs();
+    render();
+    fetchScoreboard();
+    scheduleRefresh();
+  }
+  init();
+})();
+</script>
+</body>
+</html>
