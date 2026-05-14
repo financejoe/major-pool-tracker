@@ -247,6 +247,76 @@
     font-size: 11.5px;
   }
 
+  .find-team { margin-bottom: 14px; }
+  .find-team-row { position: relative; }
+  .find-team-input {
+    width: 100%;
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 12.5px;
+    padding: 8px 34px 8px 32px;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .find-team-input:focus { border-color: var(--accent); }
+  .find-team-input::placeholder { color: var(--text-faint); }
+  .find-team-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-faint);
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+  }
+  .find-team-clear {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0;
+  }
+  .find-team-clear.visible { display: flex; }
+  .find-team-clear:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+  .find-team-status {
+    font-size: 10px;
+    color: var(--text-faint);
+    margin-top: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: none;
+  }
+  .find-team-status.visible { display: block; }
+
+  .entry.filter-dim { opacity: 0.22; }
+  .entry.filter-match { position: relative; }
+  .entry.filter-match::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    border-radius: 0 2px 2px 0;
+  }
+
   .loading, .error {
     padding: 40px 20px; text-align: center;
     color: var(--text-muted); font-size: 12px;
@@ -277,6 +347,17 @@
     Pick one player from each of 6 tiers. <strong>Best 4 of 6 scores</strong> count toward your total. Missed cut or missed round equals an automatic <strong>80</strong> per missed round. Lowest total stroke count wins.
   </div>
 
+  <div class="find-team">
+    <div class="find-team-row">
+      <span class="find-team-icon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </span>
+      <input type="text" class="find-team-input" id="find-team-input" placeholder="Find your team…" autocomplete="off" spellcheck="false" />
+      <button class="find-team-clear" id="find-team-clear" aria-label="Clear search">×</button>
+    </div>
+    <div class="find-team-status" id="find-team-status"></div>
+  </div>
+
   <div class="leaderboard" id="leaderboard">
     <div class="loading">Loading…</div>
   </div>
@@ -296,6 +377,9 @@
   const TOTAL_ROUNDS = 4;
   const COUNT_BEST = 4;
   const TIER_COUNT = 6;
+
+  // Find-team persistence
+  const SEARCH_KEY = 'kiernanPool:findTeam';
 
   const PARTICIPANTS = [
     { name: 'John Brecher',     picks: ['Rory McIlroy', 'Justin Thomas', 'Viktor Hovland', 'Hideki Matsuyama', 'Alex Fitzpatrick', 'Aaron Rai'] },
@@ -332,6 +416,8 @@
   let competitorsByName = new Map(); // normalized name → player
   let lastFetch = null;
   let openParticipants = new Set(); // for expand state
+  let searchQuery = '';
+  let initialFilterApplied = false;
 
   // ---------- Helpers ----------
   function normalizeName(s) {
@@ -495,13 +581,15 @@
     let pos = 0, lastScore = null, tieGroup = [];
     function flushTie() {
       if (!tieGroup.length) return;
-      const label = (tieGroup.length > 1 ? 'T' : '') + (pos - tieGroup.length + 1);
+      const startPos = pos - tieGroup.length + 1;
+      const label = (tieGroup.length > 1 ? 'T' : '') + startPos;
       tieGroup.forEach(p => { p.tournamentPosition = label; });
       tieGroup = [];
     }
     active.forEach(p => {
+      if (lastScore !== null && p.toPar !== lastScore) flushTie();
       pos += 1;
-      if (lastScore === null || p.toPar !== lastScore) { flushTie(); lastScore = p.toPar; }
+      lastScore = p.toPar;
       tieGroup.push(p);
     });
     flushTie();
@@ -628,6 +716,10 @@
     entries.forEach((entry, idx) => {
       board.appendChild(renderEntry(entry, idx));
     });
+
+    // Re-apply search filter; only scroll on the first render after page load
+    applySearch(!initialFilterApplied);
+    initialFilterApplied = true;
   }
 
   function renderEntry(entry, idx) {
@@ -733,6 +825,86 @@
       render();
     }
   });
+
+  // ---------- Find-team search ----------
+  function applySearch(scrollToMatch) {
+    const query = normalizeName(searchQuery);
+    const entries = document.querySelectorAll('.entry');
+    const clearBtn = document.getElementById('find-team-clear');
+    const statusEl = document.getElementById('find-team-status');
+
+    if (!query) {
+      entries.forEach(e => e.classList.remove('filter-dim', 'filter-match'));
+      clearBtn.classList.remove('visible');
+      statusEl.classList.remove('visible');
+      return;
+    }
+
+    clearBtn.classList.add('visible');
+
+    const matches = [];
+    entries.forEach(entry => {
+      const summary = entry.querySelector('.entry-summary');
+      const name = summary && summary.dataset.participantName;
+      if (name && normalizeName(name).includes(query)) {
+        entry.classList.add('filter-match');
+        entry.classList.remove('filter-dim');
+        matches.push(entry);
+      } else {
+        entry.classList.remove('filter-match');
+        entry.classList.add('filter-dim');
+      }
+    });
+
+    if (matches.length === 0) {
+      // No matches: undim everything so the leaderboard stays readable
+      entries.forEach(e => e.classList.remove('filter-dim'));
+      statusEl.textContent = 'No matches';
+      statusEl.classList.add('visible');
+    } else {
+      statusEl.textContent = matches.length === 1 ? '1 match' : `${matches.length} matches`;
+      statusEl.classList.add('visible');
+      if (scrollToMatch) {
+        matches[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }
+
+  const findInput = document.getElementById('find-team-input');
+  const findClear = document.getElementById('find-team-clear');
+
+  findInput.addEventListener('input', e => {
+    searchQuery = e.target.value;
+    try {
+      if (searchQuery) localStorage.setItem(SEARCH_KEY, searchQuery);
+      else localStorage.removeItem(SEARCH_KEY);
+    } catch (_) {}
+    applySearch(true);
+  });
+  findInput.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      searchQuery = '';
+      findInput.value = '';
+      try { localStorage.removeItem(SEARCH_KEY); } catch (_) {}
+      applySearch(false);
+    }
+  });
+  findClear.addEventListener('click', () => {
+    searchQuery = '';
+    findInput.value = '';
+    try { localStorage.removeItem(SEARCH_KEY); } catch (_) {}
+    applySearch(false);
+    findInput.focus();
+  });
+
+  // Restore any persisted search before first render
+  try {
+    const saved = localStorage.getItem(SEARCH_KEY);
+    if (saved) {
+      searchQuery = saved;
+      findInput.value = saved;
+    }
+  } catch (_) {}
 
   // ---------- Boot ----------
   fetchScoreboard();
