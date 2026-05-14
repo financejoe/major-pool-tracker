@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Kiernan Pool" />
+<title>Kiernan's PGA Championship Pool 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0a0e0c;
+    --surface-2: #141a16;
+    --surface-3: #1c2521;
+    --border: #2a3530;
+    --border-soft: #1f2824;
+    --text: #e8e4d8;
+    --text-muted: #8a948e;
+    --text-faint: #545d57;
+    --accent: #c9a45c;
+    --under: #6fb583;
+    --over: #c97560;
+    --even: #b0b8b3;
+    --cut: #6a5240;
+    --gold: #d4af37;
+    --silver: #a8a8a8;
+    --bronze: #b87333;
+    --shadow: 0 1px 0 rgba(255,255,255,0.03), 0 8px 24px rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Geist', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.45;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(ellipse at top, rgba(201, 164, 92, 0.06), transparent 50%),
+      radial-gradient(ellipse at bottom, rgba(111, 181, 131, 0.04), transparent 50%);
+  }
+  .app { max-width: 720px; margin: 0 auto; padding: 18px 16px 32px; }
+
+  .header {
+    padding-bottom: 14px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--border-soft);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .pool-title {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 28px;
+    line-height: 1.1;
+    margin: 0;
+    letter-spacing: 0.2px;
+  }
+  .pool-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+  .header-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .icon-btn {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text-muted); width: 30px; height: 30px;
+    border-radius: 6px; cursor: pointer; display: flex;
+    align-items: center; justify-content: center;
+    transition: all 0.15s ease;
+  }
+  .icon-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .icon-btn.spinning svg { animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .status-bar {
+    display: flex; justify-content: space-between;
+    font-size: 10.5px; color: var(--text-faint);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .status-bar .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--under); display: inline-block;
+    margin-right: 5px; vertical-align: middle;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  .rules-banner {
+    background: linear-gradient(180deg, rgba(201,164,92,0.06), rgba(201,164,92,0.02));
+    border: 1px solid rgba(201,164,92,0.18);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 16px;
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.55;
+  }
+  .rules-banner strong {
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .leaderboard {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--surface-2);
+    box-shadow: var(--shadow);
+  }
+  .leaderboard-head {
+    display: grid;
+    grid-template-columns: 36px 1fr 60px 26px;
+    gap: 8px;
+    padding: 9px 14px;
+    font-size: 9.5px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    background: rgba(0,0,0,0.2);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .leaderboard-head .num { text-align: right; }
+
+  .entry {
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .entry:last-child { border-bottom: none; }
+
+  .entry-summary {
+    display: grid;
+    grid-template-columns: 36px 1fr 60px 26px;
+    gap: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    align-items: center;
+    transition: background 0.12s;
+  }
+  .entry-summary:hover { background: rgba(255,255,255,0.02); }
+  .entry.open .entry-summary { background: rgba(201,164,92,0.04); }
+
+  .entry-pos {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .entry.rank-1 .entry-pos { color: var(--gold); font-weight: 600; }
+  .entry.rank-2 .entry-pos { color: var(--silver); font-weight: 600; }
+  .entry.rank-3 .entry-pos { color: var(--bronze); font-weight: 600; }
+
+  .entry-name {
+    font-size: 13.5px;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .entry-total {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .entry-caret {
+    color: var(--text-faint);
+    transition: transform 0.15s;
+    text-align: right;
+    font-size: 11px;
+  }
+  .entry.open .entry-caret { transform: rotate(90deg); }
+
+  .entry-detail {
+    display: none;
+    padding: 4px 14px 14px;
+    background: rgba(0,0,0,0.15);
+    border-top: 1px solid var(--border-soft);
+  }
+  .entry.open .entry-detail { display: block; }
+
+  .picks-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 8px;
+  }
+  .picks-table th {
+    text-align: left;
+    font-weight: 500;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    font-size: 9px;
+    letter-spacing: 0.6px;
+    padding: 4px 6px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .picks-table th.num, .picks-table td.num {
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  .picks-table td {
+    padding: 5px 6px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .picks-table tr:last-child td { border-bottom: none; }
+  .picks-table .tier {
+    color: var(--text-faint);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    width: 30px;
+  }
+  .picks-table .player { color: var(--text); }
+  .picks-table .pos { color: var(--text-muted); font-family: 'JetBrains Mono', monospace; font-size: 11px; width: 36px; }
+  .picks-table .thru { color: var(--text-muted); width: 34px; }
+  .picks-table .today { width: 42px; }
+  .picks-table .effective { width: 56px; font-weight: 500; }
+
+  .picks-table tr.dropped {
+    opacity: 0.42;
+  }
+  .picks-table tr.dropped .effective {
+    text-decoration: line-through;
+    text-decoration-color: var(--text-faint);
+    text-decoration-thickness: 1px;
+  }
+
+  .s-under { color: var(--under); }
+  .s-over { color: var(--over); }
+  .s-even { color: var(--even); }
+  .s-cut { color: var(--cut); font-size: 11px; }
+
+  .not-found {
+    color: var(--over);
+    font-style: italic;
+    font-size: 11.5px;
+  }
+
+  .loading, .error {
+    padding: 40px 20px; text-align: center;
+    color: var(--text-muted); font-size: 12px;
+  }
+  .error { color: var(--over); }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div>
+      <h1 class="pool-title">Kiernan's PGA Championship Pool 2026</h1>
+      <div class="pool-meta" id="pool-meta">Loading tournament…</div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="refresh-btn" title="Refresh now">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span><span class="dot"></span><span>Live</span></span>
+    <span id="last-updated">—</span>
+  </div>
+
+  <div class="rules-banner">
+    Pick one player from each of 6 tiers. <strong>Best 4 of 6 scores</strong> count toward your total. Missed cut or missed round equals an automatic <strong>80</strong> per missed round. Lowest total stroke count wins.
+  </div>
+
+  <div class="leaderboard" id="leaderboard">
+    <div class="loading">Loading…</div>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const ESPN_URL = 'https://site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard';
+  const REFRESH_SECONDS = 180;
+
+  // Pool scoring config
+  const PENALTY_PER_MISSED_ROUND = 80; // raw strokes per missed round, per pool rules
+  const TOTAL_ROUNDS = 4;
+  const COUNT_BEST = 4;
+  const TIER_COUNT = 6;
+
+  const PARTICIPANTS = [
+    { name: 'John Brecher',     picks: ['Rory McIlroy', 'Justin Thomas', 'Viktor Hovland', 'Hideki Matsuyama', 'Alex Fitzpatrick', 'Aaron Rai'] },
+    { name: 'Joe Niehaus',      picks: ['Cameron Young', 'Chris Gotterup', 'Sam Burns', 'Shane Lowry', 'Jason Day', 'Wyndham Clark'] },
+    { name: 'David Claveau',    picks: ['Scottie Scheffler', 'Russell Henley', 'Viktor Hovland', 'Gary Woodland', 'Alex Fitzpatrick', 'Aaron Rai'] },
+    { name: 'George Cook',      picks: ['Rory McIlroy', 'Justin Thomas', 'Sam Burns', 'Shane Lowry', 'Jason Day', 'Daniel Berger'] },
+    { name: 'Tino Rossi',       picks: ['Scottie Scheffler', 'Russell Henley', 'Sam Burns', 'Ben Griffin', 'Joaquin Niemann', 'Aaron Rai'] },
+    { name: 'Jay Ezell',        picks: ['Rory McIlroy', 'Justin Rose', 'Viktor Hovland', 'Hideki Matsuyama', 'Jason Day', 'Max Homa'] },
+    { name: 'Scott Kiernan',    picks: ['Scottie Scheffler', 'Justin Thomas', 'Rickie Fowler', 'Jordan Spieth', 'Jason Day', 'Brian Harman'] },
+    { name: 'Tom Goode',        picks: ['Rory McIlroy', 'Justin Rose', 'Patrick Reed', 'Jordan Spieth', 'Jason Day', 'Matt McCarty'] },
+    { name: 'Riley Gardner',    picks: ['Cameron Young', 'Russell Henley', 'Rickie Fowler', 'Keegan Bradley', 'Joaquin Niemann', 'Aaron Rai'] },
+    { name: 'Tyler Kuresa',     picks: ['Scottie Scheffler', 'Brooks Koepka', 'Sam Burns', 'Hideki Matsuyama', 'Sungjae Im', 'Sahith Theegala'] },
+    { name: 'James Weston',     picks: ['Cameron Young', 'Brooks Koepka', 'Rickie Fowler', 'Akshay Bhatia', 'Sungjae Im', 'Rasmus Hojgaard'] },
+    { name: 'Ben Faubion',      picks: ['Cameron Young', 'Russell Henley', 'Sam Burns', 'Keegan Bradley', 'Alex Fitzpatrick', 'Brian Harman'] },
+    { name: 'Ron Peters',       picks: ['Cameron Young', 'Brooks Koepka', 'Viktor Hovland', 'Jordan Spieth', 'Corey Conners', 'Sahith Theegala'] },
+    { name: 'Denny Boom',       picks: ['Cameron Young', 'Justin Rose', 'Rickie Fowler', 'Hideki Matsuyama', 'Jason Day', 'Wyndham Clark'] },
+    { name: 'Mark Ellinghouse', picks: ['Rory McIlroy', 'Justin Rose', 'Viktor Hovland', 'Ben Griffin', 'Alex Fitzpatrick', 'Brian Harman'] },
+    { name: 'Nate Carnahan',    picks: ['Scottie Scheffler', 'Chris Gotterup', 'Rickie Fowler', 'Gary Woodland', 'Alex Fitzpatrick', 'Matt McCarty'] },
+    { name: 'Dave Mossman',     picks: ['Scottie Scheffler', 'Justin Rose', 'Patrick Reed', 'Akshay Bhatia', 'Alex Noren', 'Brian Harman'] },
+    { name: 'Todd Chandler',    picks: ['Scottie Scheffler', 'Brooks Koepka', 'Rickie Fowler', 'Hideki Matsuyama', 'Alex Fitzpatrick', 'Brian Harman'] },
+    { name: 'Tom Walcott',      picks: ['Scottie Scheffler', 'Justin Thomas', 'Viktor Hovland', 'Gary Woodland', 'Sungjae Im', 'Daniel Berger'] },
+    { name: 'Eric Ortiz',       picks: ['Scottie Scheffler', 'Tyrrell Hatton', 'Rickie Fowler', 'Jordan Spieth', 'Alex Fitzpatrick', 'Max Homa'] },
+    { name: 'Dusty Haeling 1',  picks: ['Rory McIlroy', 'Justin Thomas', 'Viktor Hovland', 'Hideki Matsuyama', 'Corey Conners', 'Sahith Theegala'] },
+    { name: 'Dusty Haeling 2',  picks: ['Ludvig Aberg', 'Tyrrell Hatton', 'Sam Burns', 'Akshay Bhatia', 'Jason Day', 'Wyndham Clark'] },
+    { name: 'Chris Roby',       picks: ['Cameron Young', 'Patrick Cantlay', 'Patrick Reed', 'Jordan Spieth', 'Joaquin Niemann', 'Matt McCarty'] },
+    { name: 'Lyn Cristopulos',  picks: ['Scottie Scheffler', 'Min Woo Lee', 'Rickie Fowler', 'Keegan Bradley', 'Alex Smalley', 'Max Homa'] },
+    { name: 'Carrie Blythe',    picks: ['Rory McIlroy', 'Justin Thomas', 'Sam Burns', 'Jordan Spieth', 'Thomas Detry', 'Wyndham Clark'] },
+    { name: 'Kyri Washington',  picks: ['Cameron Young', 'Justin Thomas', 'Rickie Fowler', 'Shane Lowry', 'Alex Fitzpatrick', 'Michael Thorbjornsen'] },
+    { name: 'Dak Digerness',    picks: ['Jon Rahm', 'Nicolai Hojgaard', 'Viktor Hovland', 'Hideki Matsuyama', 'Alex Fitzpatrick', 'Max Homa'] },
+    { name: 'Jeremy Bautista',  picks: ['Cameron Young', 'Russell Henley', 'Rickie Fowler', 'Ben Griffin', 'Jason Day', 'Max Homa'] }
+  ];
+
+  let tournament = null;
+  let competitorsByName = new Map(); // normalized name → player
+  let lastFetch = null;
+  let openParticipants = new Set(); // for expand state
+
+  // ---------- Helpers ----------
+  function normalizeName(s) {
+    return String(s || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[.']/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function fmtScore(toPar) {
+    if (toPar === null || toPar === undefined) return '—';
+    if (toPar === 0) return 'E';
+    return (toPar > 0 ? '+' : '') + toPar;
+  }
+  function scoreClass(toPar) {
+    if (toPar === null || toPar === undefined) return '';
+    if (toPar < 0) return 's-under';
+    if (toPar > 0) return 's-over';
+    return 's-even';
+  }
+  function todayClass(d) {
+    if (!d) return '';
+    if (d === 'E' || d === '0') return 's-even';
+    if (d.startsWith('-')) return 's-under';
+    if (d.startsWith('+')) return 's-over';
+    return '';
+  }
+  function escapeHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, c =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  // ---------- Data fetch + normalize ----------
+  async function fetchScoreboard() {
+    setSpinning(true);
+    try {
+      const r = await fetch(ESPN_URL, { cache: 'no-store' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const json = await r.json();
+      processData(json);
+      lastFetch = Date.now();
+      render();
+    } catch (e) {
+      console.error(e);
+      document.getElementById('leaderboard').innerHTML =
+        '<div class="error">Could not reach ESPN. Will retry on next refresh.<br><span style="color:var(--text-faint);font-size:10.5px">' +
+        (e.message || '') + '</span></div>';
+    } finally {
+      setSpinning(false);
+      updateTimestamp();
+    }
+  }
+
+  function processData(json) {
+    const event = json.events && json.events[0];
+    if (!event) { tournament = null; competitorsByName = new Map(); return; }
+    tournament = {
+      id: event.id,
+      name: event.name,
+      status: (event.status && event.status.type && event.status.type.description) || ''
+    };
+    const comp = (event.competitions || [])[0];
+    const raw = (comp && comp.competitors) || [];
+
+    const byName = new Map();
+    raw.forEach(c => {
+      const athlete = c.athlete || {};
+      const scoreStr = (c.score || '').toString();
+      const status = c.status || {};
+      const statusName = ((status.type && status.type.description) || '').toLowerCase();
+      const isCut = /cut|missed/.test(statusName) || /CUT|MC/i.test(scoreStr);
+      const isWD = /withdraw|wd/i.test(statusName) || /WD/i.test(scoreStr);
+      const isDQ = /disqualif|dq/i.test(statusName) || /DQ/i.test(scoreStr);
+      const isOut = isCut || isWD || isDQ;
+
+      let toPar = null;
+      if (!isOut) {
+        if (scoreStr === 'E' || scoreStr === '') toPar = 0;
+        else {
+          const m = scoreStr.match(/^([+-]?)(\d+)$/);
+          if (m) toPar = (m[1] === '-' ? -1 : 1) * parseInt(m[2], 10);
+        }
+      } else {
+        // For OUT players, parse the frozen score they had when they exited
+        if (scoreStr === 'E') toPar = 0;
+        else {
+          const m = scoreStr.match(/^([+-]?)(\d+)$/);
+          if (m) toPar = (m[1] === '-' ? -1 : 1) * parseInt(m[2], 10);
+        }
+      }
+
+      const lines = Array.isArray(c.linescores) ? c.linescores : [];
+      // Build a per-round summary: strokes (raw) and holesPlayed for each of the 4 rounds.
+      const rounds = [];
+      for (let r = 1; r <= TOTAL_ROUNDS; r++) {
+        const ln = lines.find(x => x && x.period === r);
+        if (ln && ln.linescores && ln.linescores.length) {
+          rounds.push({
+            strokes: typeof ln.value === 'number' ? ln.value : 0,
+            holesPlayed: ln.linescores.length,
+            displayValue: ln.displayValue || null
+          });
+        } else {
+          rounds.push({ strokes: 0, holesPlayed: 0, displayValue: null });
+        }
+      }
+      const completedRounds = rounds.filter(r => r.holesPlayed === 18).length;
+      let currentRound = null;
+      let thru = null;
+      let teeTime = null;
+      let todayScore = null;
+      // Find latest round with activity for display
+      for (let i = lines.length - 1; i >= 0; i--) {
+        const ln = lines[i];
+        if (ln && ln.displayValue && ln.linescores && ln.linescores.length) {
+          currentRound = ln;
+          break;
+        }
+      }
+      if (currentRound) {
+        todayScore = currentRound.displayValue;
+        const holes = currentRound.linescores || [];
+        thru = holes.length === 18 ? 'F' : String(holes.length);
+        try {
+          const stats = currentRound.statistics && currentRound.statistics.categories;
+          if (stats && stats[0] && stats[0].stats) {
+            const last = stats[0].stats[stats[0].stats.length - 1];
+            if (last && typeof last.displayValue === 'string' && /\d:\d\d/.test(last.displayValue)) {
+              teeTime = last.displayValue;
+            }
+          }
+        } catch (_) {}
+      }
+
+      const player = {
+        id: athlete.id || c.id,
+        name: athlete.displayName || athlete.fullName || 'Unknown',
+        toPar, isOut,
+        outLabel: isCut ? 'MC' : (isWD ? 'WD' : (isDQ ? 'DQ' : null)),
+        rounds,
+        completedRounds,
+        todayScore, thru, teeTime
+      };
+
+      byName.set(normalizeName(player.name), player);
+    });
+
+    competitorsByName = byName;
+
+    // Compute leaderboard position for context (not strictly needed for display here but useful)
+    const all = Array.from(byName.values());
+    const active = all.filter(p => p.toPar !== null && !p.isOut)
+      .slice().sort((a, b) => a.toPar - b.toPar);
+    let pos = 0, lastScore = null, tieGroup = [];
+    function flushTie() {
+      if (!tieGroup.length) return;
+      const label = (tieGroup.length > 1 ? 'T' : '') + (pos - tieGroup.length + 1);
+      tieGroup.forEach(p => { p.tournamentPosition = label; });
+      tieGroup = [];
+    }
+    active.forEach(p => {
+      pos += 1;
+      if (lastScore === null || p.toPar !== lastScore) { flushTie(); lastScore = p.toPar; }
+      tieGroup.push(p);
+    });
+    flushTie();
+    all.forEach(p => {
+      if (!p.tournamentPosition) p.tournamentPosition = p.isOut ? p.outLabel : '—';
+    });
+  }
+
+  // ---------- Pool-specific scoring ----------
+  function effectiveScoreForPlayer(player) {
+    // Returns raw stroke total for the pool's scoring rules:
+    //   - For active players: sum of strokes across played rounds (including any in-progress round)
+    //   - For MC/WD/DQ players: completed rounds contribute their actual strokes, and any non-completed
+    //     round contributes exactly 80 strokes (pool rule)
+    // Returns null if no rounds played yet (player hasn't teed off).
+    if (!player) return null;
+
+    if (player.isOut) {
+      let total = 0;
+      player.rounds.forEach(r => {
+        if (r.holesPlayed === 18) total += r.strokes;
+        else total += PENALTY_PER_MISSED_ROUND;
+      });
+      return total;
+    }
+
+    // Active player: sum strokes across played and in-progress rounds; null if nothing yet.
+    let total = 0;
+    let any = false;
+    player.rounds.forEach(r => {
+      if (r.strokes > 0) { total += r.strokes; any = true; }
+    });
+    return any ? total : null;
+  }
+
+  function computeEntry(participant) {
+    // Resolve each pick into a competitor (or null if not found)
+    const resolved = participant.picks.map((pickName, tierIdx) => {
+      const player = competitorsByName.get(normalizeName(pickName));
+      return {
+        tier: tierIdx + 1,
+        pickName,
+        player: player || null,
+        effective: effectiveScoreForPlayer(player)
+      };
+    });
+
+    // Sort copies by effective ascending (nulls last) to determine which 4 count
+    const sortedByScore = resolved.slice().sort((a, b) => {
+      if (a.effective === null && b.effective === null) return 0;
+      if (a.effective === null) return 1;
+      if (b.effective === null) return -1;
+      return a.effective - b.effective;
+    });
+    const countedSet = new Set(sortedByScore.slice(0, COUNT_BEST).map(r => r.tier));
+
+    // Sum the best COUNT_BEST scores
+    let total = 0;
+    let hasMissing = false;
+    sortedByScore.slice(0, COUNT_BEST).forEach(r => {
+      if (r.effective === null) hasMissing = true;
+      else total += r.effective;
+    });
+
+    return {
+      participant,
+      picks: resolved,        // in tier order
+      countedSet,
+      total,
+      hasMissing,
+      hasUnmatched: resolved.some(r => r.player === null)
+    };
+  }
+
+  // ---------- Render ----------
+  function render() {
+    if (!tournament) {
+      document.getElementById('pool-meta').textContent = 'No active event';
+      document.getElementById('leaderboard').innerHTML = '';
+      return;
+    }
+    const metaParts = [tournament.name];
+    if (tournament.status) metaParts.push(tournament.status);
+    document.getElementById('pool-meta').textContent = metaParts.join(' · ');
+
+    // Compute entries
+    const entries = PARTICIPANTS.map(computeEntry);
+
+    // Sort by total ascending; entries with hasMissing go to bottom IF nobody has scores yet,
+    // but normally just sort by total.
+    entries.sort((a, b) => {
+      // Entries with no scores at all (everyone hasn't teed off yet) tie at 0; that's fine
+      if (a.total !== b.total) return a.total - b.total;
+      return a.participant.name.localeCompare(b.participant.name);
+    });
+
+    // Compute positions with ties on total
+    let pos = 0, lastTotal = null, tieGroup = [];
+    function flushTie() {
+      if (!tieGroup.length) return;
+      const label = (tieGroup.length > 1 ? 'T' : '') + (pos - tieGroup.length + 1);
+      tieGroup.forEach(e => { e.positionLabel = label; e.rankInt = pos - tieGroup.length + 1; });
+      tieGroup = [];
+    }
+    entries.forEach(e => {
+      pos += 1;
+      if (lastTotal === null || e.total !== lastTotal) { flushTie(); lastTotal = e.total; }
+      tieGroup.push(e);
+    });
+    flushTie();
+
+    const board = document.getElementById('leaderboard');
+    board.innerHTML = '';
+
+    const head = document.createElement('div');
+    head.className = 'leaderboard-head';
+    head.innerHTML = `<span>Pos</span><span>Participant</span><span class="num">Total</span><span></span>`;
+    board.appendChild(head);
+
+    entries.forEach((entry, idx) => {
+      board.appendChild(renderEntry(entry, idx));
+    });
+  }
+
+  function renderEntry(entry, idx) {
+    const div = document.createElement('div');
+    div.className = 'entry';
+    if (entry.rankInt === 1) div.classList.add('rank-1');
+    else if (entry.rankInt === 2) div.classList.add('rank-2');
+    else if (entry.rankInt === 3) div.classList.add('rank-3');
+    if (openParticipants.has(entry.participant.name)) div.classList.add('open');
+
+    const summary = document.createElement('div');
+    summary.className = 'entry-summary';
+    summary.dataset.participantName = entry.participant.name;
+    const totalDisplay = (entry.total === 0 && entry.hasMissing) ? '—' : String(entry.total);
+    summary.innerHTML = `
+      <span class="entry-pos">${entry.positionLabel}</span>
+      <span class="entry-name">${escapeHtml(entry.participant.name)}</span>
+      <span class="entry-total">${totalDisplay}</span>
+      <span class="entry-caret">▸</span>
+    `;
+    div.appendChild(summary);
+
+    const detail = document.createElement('div');
+    detail.className = 'entry-detail';
+    const table = document.createElement('table');
+    table.className = 'picks-table';
+    table.innerHTML = `
+      <thead>
+        <tr>
+          <th>T</th>
+          <th>Player</th>
+          <th>Pos</th>
+          <th class="num">Thru</th>
+          <th class="num">Today</th>
+          <th class="num">Score</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    `;
+    const tbody = table.querySelector('tbody');
+    entry.picks.forEach(pick => {
+      const tr = document.createElement('tr');
+      const isCounted = entry.countedSet.has(pick.tier);
+      if (!isCounted) tr.className = 'dropped';
+
+      if (!pick.player) {
+        tr.innerHTML = `
+          <td class="tier">T${pick.tier}</td>
+          <td class="player not-found">${escapeHtml(pick.pickName)} (not in field)</td>
+          <td class="pos">—</td>
+          <td class="num thru">—</td>
+          <td class="num today">—</td>
+          <td class="num effective">—</td>
+        `;
+      } else {
+        const p = pick.player;
+        const effectiveDisplay = pick.effective === null ? '—' : String(pick.effective);
+        const effectiveClass = pick.effective === null ? '' : (p.isOut ? 's-cut' : '');
+        const thruCell = p.isOut ? '—' : (p.thru || (p.teeTime || '—'));
+        const todayCell = p.isOut ? '—'
+          : (p.todayScore ? `<span class="${todayClass(p.todayScore)}">${p.todayScore}</span>` : '—');
+        const posLabel = p.isOut ? p.outLabel : (p.tournamentPosition || '—');
+        tr.innerHTML = `
+          <td class="tier">T${pick.tier}</td>
+          <td class="player">${escapeHtml(p.name)}</td>
+          <td class="pos">${posLabel}</td>
+          <td class="num thru">${thruCell}</td>
+          <td class="num today">${todayCell}</td>
+          <td class="num effective ${effectiveClass}">${effectiveDisplay}</td>
+        `;
+      }
+      tbody.appendChild(tr);
+    });
+    detail.appendChild(table);
+    div.appendChild(detail);
+    return div;
+  }
+
+  function updateTimestamp() {
+    const el = document.getElementById('last-updated');
+    if (!lastFetch) { el.textContent = '—'; return; }
+    const d = new Date(lastFetch);
+    el.textContent = 'Updated ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function setSpinning(loading) {
+    const btn = document.getElementById('refresh-btn');
+    if (loading) btn.classList.add('spinning'); else btn.classList.remove('spinning');
+  }
+
+  // ---------- Events ----------
+  document.getElementById('refresh-btn').addEventListener('click', fetchScoreboard);
+
+  document.addEventListener('click', e => {
+    const summary = e.target.closest('.entry-summary');
+    if (summary) {
+      const name = summary.dataset.participantName;
+      if (openParticipants.has(name)) openParticipants.delete(name);
+      else openParticipants.add(name);
+      render();
+    }
+  });
+
+  // ---------- Boot ----------
+  fetchScoreboard();
+  setInterval(fetchScoreboard, REFRESH_SECONDS * 1000);
+})();
+</script>
+</body>
+</html>
