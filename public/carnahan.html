@@ -190,7 +190,7 @@
   }
   .leaderboard-head {
     display: grid;
-    grid-template-columns: 42px 24px 1fr 60px 26px;
+    grid-template-columns: 80px 24px 1fr 60px 26px;
     gap: 8px;
     padding: 9px 14px;
     font-size: 9.5px;
@@ -207,7 +207,7 @@
 
   .entry-summary {
     display: grid;
-    grid-template-columns: 42px 24px 1fr 60px 26px;
+    grid-template-columns: 80px 24px 1fr 60px 26px;
     gap: 8px;
     padding: 10px 14px;
     cursor: pointer;
@@ -222,6 +222,7 @@
     font-size: 12px;
     color: var(--text-muted);
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
   .entry.rank-1 .entry-pos { color: var(--gold); font-weight: 600; }
   .entry.rank-2 .entry-pos { color: var(--silver); font-weight: 600; }
@@ -234,20 +235,11 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .entry-total-cell {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    line-height: 1.05;
-  }
-  .entry-total-cell .entry-total {
-    text-align: right;
-  }
   .entry-delta {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 9.5px;
+    font-size: 10px;
     font-weight: 500;
-    margin-top: 2px;
+    margin-left: 5px;
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.2px;
   }
@@ -1059,13 +1051,10 @@
       }
     }
     summary.innerHTML = `
-      <span class="entry-pos">${entry.positionLabel}</span>
+      <span class="entry-pos">${entry.positionLabel}${deltaHtml}</span>
       <button class="fav-btn ${isFav ? 'is-fav' : ''}" data-name="${escapeHtml(entry.participant.name)}" aria-label="${isFav ? 'Remove favorite' : 'Add to favorites'}" title="${isFav ? 'Remove favorite' : 'Add to favorites'}">${starSvg}</button>
       <span class="entry-name">${escapeHtml(entry.participant.name)}</span>
-      <span class="entry-total-cell">
-        <span class="entry-total ${totalClass}">${totalDisplay}</span>
-        ${deltaHtml}
-      </span>
+      <span class="entry-total ${totalClass}">${totalDisplay}</span>
       <span class="entry-caret">▸</span>
     `;
     div.appendChild(summary);
