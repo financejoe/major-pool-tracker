@@ -1086,6 +1086,9 @@
     findInput.focus();
   });
 
+  // Remember which pool the user is on (read by leaderboard back button)
+  try { localStorage.setItem('majorPoolTracker:lastPool', 'carnahan'); } catch (_) {}
+
   try {
     const savedFavs = localStorage.getItem(FAVORITES_KEY);
     if (savedFavs) favorites = new Set(JSON.parse(savedFavs));
