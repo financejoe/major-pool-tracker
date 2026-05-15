@@ -401,13 +401,9 @@
     // Normalize to 24-hour
     if (ampm.startsWith('p') && hour < 12) hour += 12;
     if (ampm.startsWith('a') && hour === 12) hour = 0;
-    // Convert to Pacific Time only if the source isn't already Pacific.
-    // ESPN sometimes returns full date strings with embedded TZ like
-    // "Fri May 15 13:54:00 PDT 2026" — those are already in Pacific.
-    if (!/\bP[DS]T\b/i.test(s) && !/\bPacific\b/i.test(s)) {
-      // Assume ET (ESPN default) — subtract 3 hours
-      hour = (hour - 3 + 24) % 24;
-    }
+    // ESPN's tee time values are always in ET regardless of how their string labels them.
+    // Convert to PDT by subtracting 3 hours. (ET and PT both shift for DST so the offset is constant.)
+    hour = (hour - 3 + 24) % 24;
     const isPM = hour >= 12;
     let h12 = hour % 12;
     if (h12 === 0) h12 = 12;
