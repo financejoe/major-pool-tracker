@@ -754,18 +754,31 @@
     if (saved) { searchQuery = saved; findInput.value = saved; }
   } catch (_) {}
 
-  // Detect which pool the user came from and update back button accordingly
+  // Determine which pool to send the user back to.
+  // Use document.referrer when available (immediate, accurate), else fall back to
+  // the last pool the user visited (tracked by each pool page in localStorage).
   try {
     const ref = document.referrer || '';
     const backBtn = document.getElementById('back-btn');
     const backLabel = document.getElementById('back-btn-label');
-    if (ref.includes('/carnahan.html')) {
+
+    let lastPool = null;
+    try { lastPool = localStorage.getItem('majorPoolTracker:lastPool'); } catch (_) {}
+
+    let target = null;
+    if (ref.includes('/carnahan.html')) target = 'carnahan';
+    else if (ref.includes('/pool.html')) target = 'kiernan';
+    else if (lastPool === 'carnahan') target = 'carnahan';
+    else if (lastPool === 'kiernan') target = 'kiernan';
+
+    if (target === 'carnahan') {
       backBtn.href = 'carnahan.html';
       backLabel.textContent = 'Carnahan Pool';
-    } else if (ref.includes('/pool.html')) {
+    } else if (target === 'kiernan') {
       backBtn.href = 'pool.html';
       backLabel.textContent = 'Kiernan Pool';
     }
+    // else: keep default "Back to Pool" → pool.html
   } catch (_) {}
 
   fetchScoreboard();
