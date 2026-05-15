@@ -1034,6 +1034,9 @@
     findInput.focus();
   });
 
+  // Remember which pool the user is on (read by leaderboard back button)
+  try { localStorage.setItem('majorPoolTracker:lastPool', 'kiernan'); } catch (_) {}
+
   // Restore favorites and search before first render
   try {
     const savedFavs = localStorage.getItem(FAVORITES_KEY);
