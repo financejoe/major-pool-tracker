@@ -606,6 +606,14 @@
   }
 
   // ---------- Data fetch + normalize ----------
+  function parseDisplayValue(dv) {
+    if (!dv) return null;
+    if (dv === 'E') return 0;
+    if (dv === '-') return null;
+    const m = String(dv).match(/^([+-]?)(\d+)$/);
+    return m ? (m[1] === '-' ? -1 : 1) * parseInt(m[2], 10) : null;
+  }
+
   async function fetchScoreboard() {
     setSpinning(true);
     try {
