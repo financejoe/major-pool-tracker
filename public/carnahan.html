@@ -593,6 +593,9 @@
     };
     const comp = (event.competitions || [])[0];
     const raw = (comp && comp.competitors) || [];
+    // Tournament's currently-active round (1-4). Used to determine "today" data for each player.
+    const tournamentRound = (event.status && event.status.period) ||
+                            (comp && comp.status && comp.status.period) || null;
 
     const byName = new Map();
     raw.forEach(c => {
@@ -636,19 +639,18 @@
       }
       const completedRounds = rounds.filter(r => r.holesPlayed === 18).length;
 
-      let currentRound = null, thru = null, teeTime = null, todayScore = null;
-      for (let i = lines.length - 1; i >= 0; i--) {
-        const ln = lines[i];
-        if (ln && ln.displayValue && ln.linescores && ln.linescores.length) {
-          currentRound = ln; break;
-        }
-      }
-      if (currentRound) {
-        todayScore = currentRound.displayValue;
-        const holes = currentRound.linescores || [];
-        thru = holes.length === 18 ? 'F' : String(holes.length);
+      let thru = null, teeTime = null, todayScore = null;
+      // Use the tournament's current round to determine "today" data.
+      // This correctly handles players who finished a round but haven't teed off for the next one.
+      const todayLn = tournamentRound
+        ? lines.find(x => x && x.period === tournamentRound)
+        : null;
+      if (todayLn && todayLn.linescores && todayLn.linescores.length > 0) {
+        todayScore = todayLn.displayValue;
+        thru = todayLn.linescores.length === 18 ? 'F' : String(todayLn.linescores.length);
+      } else if (todayLn) {
         try {
-          const stats = currentRound.statistics && currentRound.statistics.categories;
+          const stats = todayLn.statistics && todayLn.statistics.categories;
           if (stats && stats[0] && stats[0].stats) {
             const last = stats[0].stats[stats[0].stats.length - 1];
             if (last && typeof last.displayValue === 'string' && /\d:\d\d/.test(last.displayValue)) {
@@ -656,6 +658,19 @@
             }
           }
         } catch (_) {}
+      } else if (!tournamentRound) {
+        // Fallback: last-played-round logic when tournament round info is unavailable
+        let lastPlayed = null;
+        for (let i = lines.length - 1; i >= 0; i--) {
+          const ln = lines[i];
+          if (ln && ln.displayValue && ln.linescores && ln.linescores.length) {
+            lastPlayed = ln; break;
+          }
+        }
+        if (lastPlayed) {
+          todayScore = lastPlayed.displayValue;
+          thru = lastPlayed.linescores.length === 18 ? 'F' : String(lastPlayed.linescores.length);
+        }
       }
 
       const player = {
