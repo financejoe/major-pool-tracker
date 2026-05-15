@@ -174,7 +174,7 @@
   }
   .lb-head, .lb-row {
     display: grid;
-    grid-template-columns: 42px 24px 1fr 44px 44px 50px;
+    grid-template-columns: 42px 24px 1fr 44px 72px 50px;
     gap: 8px;
     padding: 9px 14px;
     align-items: center;
@@ -389,6 +389,31 @@
     if (d.startsWith('+')) return 's-over';
     return '';
   }
+  function formatTeeTime(raw) {
+    if (!raw) return null;
+    const s = String(raw);
+    // Match HH:MM with optional :SS and optional am/pm anywhere in the string
+    const m = s.match(/(\d{1,2}):(\d{2})(?::\d{2})?\s*(am|pm|a|p)?/i);
+    if (!m) return s;
+    let hour = parseInt(m[1], 10);
+    const minute = parseInt(m[2], 10);
+    const ampm = (m[3] || '').toLowerCase();
+    // Normalize to 24-hour
+    if (ampm.startsWith('p') && hour < 12) hour += 12;
+    if (ampm.startsWith('a') && hour === 12) hour = 0;
+    // Convert to Pacific Time only if the source isn't already Pacific.
+    // ESPN sometimes returns full date strings with embedded TZ like
+    // "Fri May 15 13:54:00 PDT 2026" — those are already in Pacific.
+    if (!/\bP[DS]T\b/i.test(s) && !/\bPacific\b/i.test(s)) {
+      // Assume ET (ESPN default) — subtract 3 hours
+      hour = (hour - 3 + 24) % 24;
+    }
+    const isPM = hour >= 12;
+    let h12 = hour % 12;
+    if (h12 === 0) h12 = 12;
+    return h12 + ':' + minute.toString().padStart(2, '0') + (isPM ? 'p' : 'a') + ' PDT';
+  }
+
   function escapeHtml(s) {
     return String(s || '').replace(/[&<>"']/g, c =>
       ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -479,7 +504,7 @@
           if (stats && stats[0] && stats[0].stats) {
             const last = stats[0].stats[stats[0].stats.length - 1];
             if (last && typeof last.displayValue === 'string' && /\d:\d\d/.test(last.displayValue)) {
-              teeTime = last.displayValue;
+              teeTime = formatTeeTime(last.displayValue);
             }
           }
         } catch (_) {}
@@ -491,7 +516,7 @@
           if (stats && stats[0] && stats[0].stats) {
             const last = stats[0].stats[stats[0].stats.length - 1];
             if (last && typeof last.displayValue === 'string' && /\d:\d\d/.test(last.displayValue)) {
-              teeTime = last.displayValue;
+              teeTime = formatTeeTime(last.displayValue);
             }
           }
         } catch (_) {}
