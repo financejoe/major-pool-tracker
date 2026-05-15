@@ -132,7 +132,7 @@
   }
   .leaderboard-head {
     display: grid;
-    grid-template-columns: 36px 24px 1fr 60px 26px;
+    grid-template-columns: 80px 24px 1fr 60px 26px;
     gap: 8px;
     padding: 9px 14px;
     font-size: 9.5px;
@@ -151,7 +151,7 @@
 
   .entry-summary {
     display: grid;
-    grid-template-columns: 36px 24px 1fr 60px 26px;
+    grid-template-columns: 80px 24px 1fr 60px 26px;
     gap: 8px;
     padding: 10px 14px;
     cursor: pointer;
@@ -161,11 +161,24 @@
   .entry-summary:hover { background: rgba(255,255,255,0.02); }
   .entry.open .entry-summary { background: rgba(201,164,92,0.04); }
 
+  .entry-delta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    margin-left: 5px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.2px;
+  }
+  .delta-up { color: var(--under); }
+  .delta-down { color: var(--over); }
+  .delta-flat { color: var(--text-faint); font-size: 10px; }
+
   .entry-pos {
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
     color: var(--text-muted);
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
   .entry.rank-1 .entry-pos { color: var(--gold); font-weight: 600; }
   .entry.rank-2 .entry-pos { color: var(--silver); font-weight: 600; }
@@ -525,7 +538,8 @@
   ];
 
   let tournament = null;
-  let competitorsByName = new Map(); // normalized name → player
+  let competitorsByName = new Map();
+  let tournamentRound = null; // current round number from ESPN event status
   let lastFetch = null;
   let openParticipants = new Set(); // for expand state
   let favorites = new Set();
@@ -623,7 +637,7 @@
     const comp = (event.competitions || [])[0];
     const raw = (comp && comp.competitors) || [];
     // Tournament's currently-active round (1-4). Used to determine "today" data for each player.
-    const tournamentRound = (event.status && event.status.period) ||
+    tournamentRound = (event.status && event.status.period) ||
                             (comp && comp.status && comp.status.period) || null;
 
     const byName = new Map();
@@ -707,6 +721,30 @@
         }
       }
 
+      // Compute priorEffective: each player's score expressed as the Kiernan-style effective
+      // (sum of completed-round to-par contributions) as of the end of yesterday's round.
+      // For active players with all prior rounds complete: priorToPar.
+      // For MC/WD/DQ players, any rounds they didn't play that the tournament has moved past
+      // contribute PENALTY_PER_MISSED_ROUND each. (At end of R2 they had no missed rounds yet,
+      // since they completed both rounds before being cut.)
+      let priorEffective = null;
+      if (tournamentRound && tournamentRound > 1) {
+        let sum = 0;
+        let hasAny = false;
+        for (let r = 1; r < tournamentRound; r++) {
+          const round = rounds[r - 1];
+          if (round && round.holesPlayed === 18) {
+            const tp = parseDisplayValue(round.displayValue);
+            if (tp !== null) { sum += tp; hasAny = true; }
+          } else if (isOut) {
+            // Missed a round in the past — penalty applies
+            sum += PENALTY_PER_MISSED_ROUND;
+            hasAny = true;
+          }
+        }
+        priorEffective = hasAny ? sum : null;
+      }
+
       const player = {
         id: athlete.id || c.id,
         name: athlete.displayName || athlete.fullName || 'Unknown',
@@ -714,6 +752,7 @@
         outLabel: isCut ? 'MC' : (isWD ? 'WD' : (isDQ ? 'DQ' : null)),
         rounds,
         completedRounds,
+        priorEffective,
         todayScore, thru, teeTime
       };
 
@@ -800,6 +839,24 @@
       }
     });
 
+    // Prior-day computation: best COUNT_BEST of each pick's priorEffective.
+    let priorTotal = 0, priorCountedCount = 0;
+    if (tournamentRound && tournamentRound > 1) {
+      const priorScores = resolved.map(r => {
+        return (r.player && r.player.priorEffective !== null && r.player.priorEffective !== undefined)
+          ? r.player.priorEffective : null;
+      });
+      const sortedPrior = priorScores.slice().sort((a, b) => {
+        if (a === null && b === null) return 0;
+        if (a === null) return 1;
+        if (b === null) return -1;
+        return a - b;
+      });
+      sortedPrior.slice(0, COUNT_BEST).forEach(s => {
+        if (s !== null) { priorTotal += s; priorCountedCount += 1; }
+      });
+    }
+
     return {
       participant,
       picks: resolved,        // in tier order
@@ -807,6 +864,8 @@
       total,
       countedCount,
       hasMissing,
+      priorTotal,
+      priorCountedCount,
       hasUnmatched: resolved.some(r => r.player === null)
     };
   }
@@ -853,6 +912,32 @@
     });
     flushTie();
 
+    // Compute day-over-day position deltas (only when there's a prior day to compare to)
+    if (tournamentRound && tournamentRound > 1) {
+      const eligibleForPrior = entries.filter(e => e.priorCountedCount > 0);
+      eligibleForPrior.sort((a, b) => {
+        if (a.priorTotal !== b.priorTotal) return a.priorTotal - b.priorTotal;
+        return a.participant.name.localeCompare(b.participant.name);
+      });
+      let priorPos = 0, prevPriorTotal = null;
+      eligibleForPrior.forEach((e, idx) => {
+        if (idx === 0 || e.priorTotal !== prevPriorTotal) {
+          priorPos = idx + 1;
+        }
+        e.priorRank = priorPos;
+        prevPriorTotal = e.priorTotal;
+      });
+      entries.forEach(e => {
+        if (e.rankInt && e.priorRank) {
+          e.positionDelta = e.priorRank - e.rankInt;
+        } else {
+          e.positionDelta = null;
+        }
+      });
+    } else {
+      entries.forEach(e => { e.positionDelta = null; });
+    }
+
     const board = document.getElementById('leaderboard');
     board.innerHTML = '';
 
@@ -894,8 +979,19 @@
     const totalClass = noScores ? '' : scoreClass(entry.total);
     const isFav = favorites.has(entry.participant.name);
     const starSvg = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+    // Position delta arrow (day-over-day movement)
+    let deltaHtml = '';
+    if (entry.positionDelta !== null && entry.positionDelta !== undefined) {
+      if (entry.positionDelta > 0) {
+        deltaHtml = `<span class="entry-delta delta-up">▲ ${entry.positionDelta}</span>`;
+      } else if (entry.positionDelta < 0) {
+        deltaHtml = `<span class="entry-delta delta-down">▼ ${-entry.positionDelta}</span>`;
+      } else {
+        deltaHtml = `<span class="entry-delta delta-flat">—</span>`;
+      }
+    }
     summary.innerHTML = `
-      <span class="entry-pos">${entry.positionLabel}</span>
+      <span class="entry-pos">${entry.positionLabel}${deltaHtml}</span>
       <button class="fav-btn ${isFav ? 'is-fav' : ''}" data-name="${escapeHtml(entry.participant.name)}" aria-label="${isFav ? 'Remove favorite' : 'Add to favorites'}" title="${isFav ? 'Remove favorite' : 'Add to favorites'}">${starSvg}</button>
       <span class="entry-name">${escapeHtml(entry.participant.name)}</span>
       <span class="entry-total ${totalClass}">${totalDisplay}</span>
