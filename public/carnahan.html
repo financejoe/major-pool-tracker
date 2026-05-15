@@ -234,6 +234,27 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  .entry-total-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1.05;
+  }
+  .entry-total-cell .entry-total {
+    text-align: right;
+  }
+  .entry-delta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    font-weight: 500;
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.2px;
+  }
+  .delta-up { color: var(--under); }
+  .delta-down { color: var(--over); }
+  .delta-flat { color: var(--text-faint); font-size: 10px; }
+
   .entry-total {
     font-family: 'JetBrains Mono', monospace;
     font-size: 15px;
@@ -513,6 +534,7 @@
 
   let tournament = null;
   let competitorsByName = new Map();
+  let tournamentRound = null; // current round number from ESPN event status
   let lastFetch = null;
   let openParticipants = new Set();
   let favorites = new Set();
@@ -615,7 +637,7 @@
     const comp = (event.competitions || [])[0];
     const raw = (comp && comp.competitors) || [];
     // Tournament's currently-active round (1-4). Used to determine "today" data for each player.
-    const tournamentRound = (event.status && event.status.period) ||
+    tournamentRound = (event.status && event.status.period) ||
                             (comp && comp.status && comp.status.period) || null;
 
     const byName = new Map();
@@ -694,6 +716,22 @@
         }
       }
 
+      // Compute priorToPar: sum of to-par from rounds COMPLETED before today's round.
+      // Used for day-over-day position delta.
+      let priorToPar = null;
+      if (tournamentRound && tournamentRound > 1) {
+        let sum = 0;
+        let any = false;
+        for (let r = 1; r < tournamentRound; r++) {
+          const round = rounds[r - 1];
+          if (round && round.holesPlayed === 18) {
+            const tp = parseDisplayValue(round.displayValue);
+            if (tp !== null) { sum += tp; any = true; }
+          }
+        }
+        priorToPar = any ? sum : null;
+      }
+
       const player = {
         id: athlete.id || c.id,
         name: athlete.displayName || athlete.fullName || 'Unknown',
@@ -701,6 +739,7 @@
         outLabel: isCut ? 'MC' : (isWD ? 'WD' : (isDQ ? 'DQ' : null)),
         rounds,
         completedRounds,
+        priorToPar,
         todayScore, thru, teeTime
       };
 
@@ -796,6 +835,26 @@
       });
     });
 
+    // Prior-day computation (same logic as above but using each player's priorToPar)
+    // Used to compute day-over-day position movement.
+    let priorTotal = 0, priorCountedCount = 0;
+    if (tournamentRound && tournamentRound > 1) {
+      const priorScores = resolved.map(r => {
+        if (!r.player || r.player.isOut) return null;
+        return (r.player.priorToPar !== null && r.player.priorToPar !== undefined)
+          ? r.player.priorToPar : null;
+      });
+      const sortedPrior = priorScores.slice().sort((a, b) => {
+        if (a === null && b === null) return 0;
+        if (a === null) return 1;
+        if (b === null) return -1;
+        return a - b;
+      });
+      sortedPrior.slice(0, COUNT_BEST).forEach(s => {
+        if (s !== null) { priorTotal += s; priorCountedCount += 1; }
+      });
+    }
+
     return {
       participant,
       picks: resolved,
@@ -806,6 +865,8 @@
       eliminated,
       fourthBest,
       bestSingleRound,
+      priorTotal,
+      priorCountedCount,
       hasUnmatched: resolved.some(r => r.player === null)
     };
   }
@@ -885,6 +946,44 @@
 
     eliminated.forEach(e => { e.positionLabel = 'CUT'; e.rankInt = null; });
 
+    // Compute day-over-day position deltas (active entries only, only when there's a prior day)
+    if (tournamentRound && tournamentRound > 1) {
+      const eligibleForPrior = active.filter(e => e.priorCountedCount > 0);
+      eligibleForPrior.sort((a, b) => {
+        if (a.priorTotal !== b.priorTotal) return a.priorTotal - b.priorTotal;
+        return a.participant.name.localeCompare(b.participant.name);
+      });
+      let priorPos = 0, prevPriorTotal = null;
+      eligibleForPrior.forEach(e => {
+        if (prevPriorTotal === null || e.priorTotal !== prevPriorTotal) {
+          priorPos = priorPos + 1 + (prevPriorTotal === null ? 0 : 0);
+          // Use position counter that increments only when total differs
+        }
+        prevPriorTotal = e.priorTotal;
+      });
+      // Re-do with proper tie-aware ranking
+      priorPos = 0;
+      prevPriorTotal = null;
+      let tieCount = 0;
+      eligibleForPrior.forEach((e, idx) => {
+        if (idx === 0 || e.priorTotal !== prevPriorTotal) {
+          priorPos = idx + 1;
+        }
+        e.priorRank = priorPos;
+        prevPriorTotal = e.priorTotal;
+      });
+      // Compute delta per entry: positive = moved up, negative = moved down
+      active.forEach(e => {
+        if (e.rankInt && e.priorRank) {
+          e.positionDelta = e.priorRank - e.rankInt;
+        } else {
+          e.positionDelta = null;
+        }
+      });
+    } else {
+      active.forEach(e => { e.positionDelta = null; });
+    }
+
     const board = document.getElementById('leaderboard');
     board.innerHTML = '';
 
@@ -948,11 +1047,25 @@
     }
     const isFav = favorites.has(entry.participant.name);
     const starSvg = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+    // Position delta arrow (day-over-day movement)
+    let deltaHtml = '';
+    if (!entry.eliminated && entry.positionDelta !== null && entry.positionDelta !== undefined) {
+      if (entry.positionDelta > 0) {
+        deltaHtml = `<span class="entry-delta delta-up">▲ ${entry.positionDelta}</span>`;
+      } else if (entry.positionDelta < 0) {
+        deltaHtml = `<span class="entry-delta delta-down">▼ ${-entry.positionDelta}</span>`;
+      } else {
+        deltaHtml = `<span class="entry-delta delta-flat">—</span>`;
+      }
+    }
     summary.innerHTML = `
       <span class="entry-pos">${entry.positionLabel}</span>
       <button class="fav-btn ${isFav ? 'is-fav' : ''}" data-name="${escapeHtml(entry.participant.name)}" aria-label="${isFav ? 'Remove favorite' : 'Add to favorites'}" title="${isFav ? 'Remove favorite' : 'Add to favorites'}">${starSvg}</button>
       <span class="entry-name">${escapeHtml(entry.participant.name)}</span>
-      <span class="entry-total ${totalClass}">${totalDisplay}</span>
+      <span class="entry-total-cell">
+        <span class="entry-total ${totalClass}">${totalDisplay}</span>
+        ${deltaHtml}
+      </span>
       <span class="entry-caret">▸</span>
     `;
     div.appendChild(summary);
