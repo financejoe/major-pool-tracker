@@ -633,15 +633,25 @@
     tournamentRound = (event.status && event.status.period) ||
                             (comp && comp.status && comp.status.period) || null;
 
+    // Determine whether the 36-hole cut has been applied. ESPN exposes no status field
+    // on golf competitors; instead it creates a round-3 linescores entry for players who
+    // made the cut and omits it entirely for players who missed. The cut is "in" once some
+    // players have a round-3 entry and some do not.
+    let withR3 = 0;
+    raw.forEach(c => {
+      if ((c.linescores || []).some(l => l && l.period === 3)) withR3++;
+    });
+    const cutHasHappened = withR3 > 0 && withR3 < raw.length;
+
     const byName = new Map();
     raw.forEach(c => {
       const athlete = c.athlete || {};
       const scoreStr = (c.score || '').toString();
-      const status = c.status || {};
-      const statusName = ((status.type && status.type.description) || '').toLowerCase();
-      const isCut = /cut|missed/.test(statusName) || /CUT|MC/i.test(scoreStr);
-      const isWD = /withdraw|wd/i.test(statusName) || /WD/i.test(scoreStr);
-      const isDQ = /disqualif|dq/i.test(statusName) || /DQ/i.test(scoreStr);
+      const isWD = /\bWD\b/i.test(scoreStr);
+      const isDQ = /\bDQ\b/i.test(scoreStr);
+      // Missed cut: the cut has been applied and ESPN omitted this player's round-3 entry.
+      const hasR3 = (c.linescores || []).some(l => l && l.period === 3);
+      const isCut = cutHasHappened && !isWD && !isDQ && !hasR3;
       const isOut = isCut || isWD || isDQ;
 
       let toPar = null;
