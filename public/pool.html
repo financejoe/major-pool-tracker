@@ -24,7 +24,7 @@
     --under: #6fb583;
     --over: #c97560;
     --even: #b0b8b3;
-    --cut: #6a5240;
+    --cut: #d97560;
     --gold: #d4af37;
     --silver: #a8a8a8;
     --bronze: #b87333;
@@ -741,26 +741,29 @@
 
       // Compute priorEffective: each player's score expressed as the Kiernan-style effective
       // (sum of completed-round to-par contributions) as of the end of yesterday's round.
-      // For active players with all prior rounds complete: priorToPar.
-      // For MC/WD/DQ players, any rounds they didn't play that the tournament has moved past
-      // contribute PENALTY_PER_MISSED_ROUND each. (At end of R2 they had no missed rounds yet,
-      // since they completed both rounds before being cut.)
+      // For out players the penalty is locked the moment they're cut, so prior = current,
+      // ensuring the position delta reflects only real R3 movement and not the cut transition.
       let priorEffective = null;
       if (tournamentRound && tournamentRound > 1) {
-        let sum = 0;
-        let hasAny = false;
-        for (let r = 1; r < tournamentRound; r++) {
-          const round = rounds[r - 1];
-          if (round && round.holesPlayed === 18) {
-            const tp = parseDisplayValue(round.displayValue);
-            if (tp !== null) { sum += tp; hasAny = true; }
-          } else if (isOut) {
-            // Missed a round in the past — penalty applies
-            sum += PENALTY_PER_MISSED_ROUND;
-            hasAny = true;
+        if (isOut) {
+          // Match the formula used in effectiveScoreForPlayer so prior == current for out players
+          if (toPar !== null) {
+            const missedOut = Math.max(0, TOTAL_ROUNDS - completedRounds);
+            priorEffective = toPar + missedOut * PENALTY_PER_MISSED_ROUND;
           }
+        } else {
+          // Active players: sum to-par from completed rounds before today
+          let sum = 0;
+          let hasAny = false;
+          for (let r = 1; r < tournamentRound; r++) {
+            const round = rounds[r - 1];
+            if (round && round.holesPlayed === 18) {
+              const tp = parseDisplayValue(round.displayValue);
+              if (tp !== null) { sum += tp; hasAny = true; }
+            }
+          }
+          priorEffective = hasAny ? sum : null;
         }
-        priorEffective = hasAny ? sum : null;
       }
 
       const player = {
