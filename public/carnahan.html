@@ -995,30 +995,25 @@
     head.innerHTML = `<span>Pos</span><span></span><span>Team</span><span class="num">Total</span><span></span>`;
     board.appendChild(head);
 
-    // Pin favorites to top of active section (stable; preserves prior order)
-    active.sort((a, b) => {
-      const aFav = favorites.has(a.participant.name);
-      const bFav = favorites.has(b.participant.name);
-      if (aFav !== bFav) return aFav ? -1 : 1;
-      return 0;
-    });
+    // Pin ALL favorites (active and eliminated) to the very top of the board.
+    // Active favorites first in their total-sorted order, then eliminated favorites
+    // in their alphabetical order. Then non-favorited active, then the eliminated
+    // divider, then non-favorited eliminated.
+    const favActive = active.filter(e => favorites.has(e.participant.name));
+    const favEliminated = eliminated.filter(e => favorites.has(e.participant.name));
+    const nonFavActive = active.filter(e => !favorites.has(e.participant.name));
+    const nonFavEliminated = eliminated.filter(e => !favorites.has(e.participant.name));
 
-    active.forEach(entry => board.appendChild(renderEntry(entry)));
+    favActive.forEach(entry => board.appendChild(renderEntry(entry)));
+    favEliminated.forEach(entry => board.appendChild(renderEntry(entry)));
+    nonFavActive.forEach(entry => board.appendChild(renderEntry(entry)));
 
-    if (eliminated.length) {
+    if (nonFavEliminated.length) {
       const divider = document.createElement('div');
       divider.className = 'section-divider';
       divider.textContent = `Eliminated · ${eliminated.length} team${eliminated.length === 1 ? '' : 's'} (2+ missed cuts)`;
       board.appendChild(divider);
-      // Pin favorites to top of eliminated section
-      eliminated.sort((a, b) => {
-        const aFav = favorites.has(a.participant.name);
-        const bFav = favorites.has(b.participant.name);
-        if (aFav !== bFav) return aFav ? -1 : 1;
-        return 0;
-      });
-
-      eliminated.forEach(entry => board.appendChild(renderEntry(entry)));
+      nonFavEliminated.forEach(entry => board.appendChild(renderEntry(entry)));
     }
 
     applySearch(!initialFilterApplied);
