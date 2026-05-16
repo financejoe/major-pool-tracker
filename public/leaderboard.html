@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="Carnahan Pool" />
-<title>Carnahan's PGA Championship Pool 2026</title>
+<meta name="apple-mobile-web-app-title" content="PGA Leaderboard" />
+<title>PGA Championship Leaderboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -28,7 +28,6 @@
     --gold: #d4af37;
     --silver: #a8a8a8;
     --bronze: #b87333;
-    --eliminated: #5a2828;
     --shadow: 0 1px 0 rgba(255,255,255,0.03), 0 8px 24px rgba(0,0,0,0.35);
   }
   * { box-sizing: border-box; }
@@ -99,7 +98,7 @@
     display: flex; justify-content: space-between;
     font-size: 10.5px; color: var(--text-faint);
     text-transform: uppercase; letter-spacing: 0.5px;
-    margin-bottom: 8px;
+    margin-bottom: 14px;
   }
   .status-bar .dot {
     width: 6px; height: 6px; border-radius: 50%;
@@ -108,21 +107,6 @@
     animation: pulse 2s ease-in-out infinite;
   }
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-
-  .rules-banner {
-    background: linear-gradient(180deg, rgba(201,164,92,0.06), rgba(201,164,92,0.02));
-    border: 1px solid rgba(201,164,92,0.18);
-    border-radius: 8px;
-    padding: 8px 12px;
-    margin-bottom: 16px;
-    font-size: 11px;
-    color: var(--text-muted);
-    line-height: 1.55;
-  }
-  .rules-banner strong {
-    color: var(--accent);
-    font-weight: 500;
-  }
 
   .find-team { margin-bottom: 14px; }
   .find-team-row { position: relative; }
@@ -188,11 +172,14 @@
     background: var(--surface-2);
     box-shadow: var(--shadow);
   }
-  .leaderboard-head {
+  .lb-head, .lb-row {
     display: grid;
-    grid-template-columns: 80px 24px 1fr 60px 26px;
+    grid-template-columns: 42px 24px 1fr 44px 72px 50px;
     gap: 8px;
     padding: 9px 14px;
+    align-items: center;
+  }
+  .lb-head {
     font-size: 9.5px;
     color: var(--text-faint);
     text-transform: uppercase;
@@ -200,140 +187,77 @@
     background: rgba(0,0,0,0.2);
     border-bottom: 1px solid var(--border-soft);
   }
-  .leaderboard-head .num { text-align: right; }
-
-  .entry { border-bottom: 1px solid var(--border-soft); }
-  .entry:last-child { border-bottom: none; }
-
-  .entry-summary {
-    display: grid;
-    grid-template-columns: 80px 24px 1fr 60px 26px;
-    gap: 8px;
-    padding: 10px 14px;
-    cursor: pointer;
-    align-items: center;
+  .lb-head .num, .lb-row .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .lb-row {
+    border-bottom: 1px solid var(--border-soft);
     transition: background 0.12s;
   }
-  .entry-summary:hover { background: rgba(255,255,255,0.02); }
-  .entry.open .entry-summary { background: rgba(201,164,92,0.04); }
+  .lb-row:last-child { border-bottom: none; }
+  .lb-row:hover { background: rgba(255,255,255,0.02); }
 
-  .entry-pos {
+  .lb-pos {
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
     color: var(--text-muted);
     font-variant-numeric: tabular-nums;
-    white-space: nowrap;
   }
-  .entry.rank-1 .entry-pos { color: var(--gold); font-weight: 600; }
-  .entry.rank-2 .entry-pos { color: var(--silver); font-weight: 600; }
-  .entry.rank-3 .entry-pos { color: var(--bronze); font-weight: 600; }
+  .lb-row.rank-1 .lb-pos { color: var(--gold); font-weight: 600; }
+  .lb-row.rank-2 .lb-pos { color: var(--silver); font-weight: 600; }
+  .lb-row.rank-3 .lb-pos { color: var(--bronze); font-weight: 600; }
 
-  .entry-name {
+  .lb-player {
     font-size: 13.5px;
     color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+  }
+  .lb-flag {
+    width: 16px;
+    height: 11px;
+    object-fit: cover;
+    border-radius: 1px;
+    opacity: 0.85;
+    flex-shrink: 0;
+  }
+  .lb-name {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .entry-delta {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    font-weight: 500;
-    margin-left: 5px;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.2px;
-  }
-  .delta-up { color: var(--under); }
-  .delta-down { color: var(--over); }
-  .delta-flat { color: var(--text-faint); font-size: 10px; }
 
-  .entry-total {
+  .lb-today {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .lb-thru {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .lb-total {
     font-family: 'JetBrains Mono', monospace;
     font-size: 15px;
     font-weight: 500;
     text-align: right;
     font-variant-numeric: tabular-nums;
   }
-  .entry-caret {
-    color: var(--text-faint);
-    transition: transform 0.15s;
-    text-align: right;
-    font-size: 11px;
-  }
-  .entry.open .entry-caret { transform: rotate(90deg); }
 
-  .entry.eliminated { opacity: 0.55; }
-  .entry.eliminated .entry-pos { color: var(--eliminated); }
-  .entry.eliminated .entry-total { color: var(--eliminated); font-size: 11px; }
-
-  .entry-detail {
-    display: none;
-    padding: 4px 14px 14px;
-    background: rgba(0,0,0,0.15);
-    border-top: 1px solid var(--border-soft);
-  }
-  .entry.open .entry-detail { display: block; }
-
-  .picks-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-    margin-top: 8px;
-  }
-  .picks-table th {
-    text-align: left;
-    font-weight: 500;
-    color: var(--text-faint);
-    text-transform: uppercase;
-    font-size: 9px;
-    letter-spacing: 0.6px;
-    padding: 4px 6px;
-    border-bottom: 1px solid var(--border-soft);
-  }
-  .picks-table th.num, .picks-table td.num {
-    text-align: right;
-    font-family: 'JetBrains Mono', monospace;
-    font-variant-numeric: tabular-nums;
-  }
-  .picks-table td {
-    padding: 5px 6px;
-    border-bottom: 1px solid var(--border-soft);
-  }
-  .picks-table tr:last-child td { border-bottom: none; }
-  .picks-table .tier {
-    color: var(--text-faint);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    width: 30px;
-  }
-  .picks-table .player { color: var(--text); }
-  .picks-table .pos { color: var(--text-muted); font-family: 'JetBrains Mono', monospace; font-size: 11px; width: 36px; }
-  .picks-table .thru { color: var(--text-muted); width: 72px; }
-  .picks-table .today { width: 42px; }
-  .picks-table .effective { width: 56px; font-weight: 500; }
-
-  .picks-table tr.dropped { opacity: 0.42; }
-  .picks-table tr.dropped .effective {
-    text-decoration: line-through;
-    text-decoration-color: var(--text-faint);
-    text-decoration-thickness: 1px;
-  }
+  .lb-row.is-out { opacity: 0.55; }
+  .lb-row.is-out .lb-total { color: var(--cut); font-size: 12px; }
 
   .s-under { color: var(--under); }
   .s-over { color: var(--over); }
   .s-even { color: var(--even); }
   .s-cut { color: var(--cut); font-size: 11px; }
 
-  .not-found {
-    color: var(--over);
-    font-style: italic;
-    font-size: 11.5px;
-  }
-
-  .entry.filter-dim { display: none; }
-  .entry.eliminated.filter-dim { display: none; }
-  .entry.filter-match { position: relative; }
-  .entry.filter-match::before {
+  .lb-row.filter-dim { display: none; }
+  .lb-row.is-out.filter-dim { display: none; }
+  .lb-row.filter-match { position: relative; }
+  .lb-row.filter-match::before {
     content: '';
     position: absolute;
     left: 0;
@@ -344,71 +268,15 @@
     border-radius: 0 2px 2px 0;
   }
 
-  .book-promo {
-    margin-bottom: 16px;
-    padding: 14px;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    display: flex;
-    gap: 14px;
-    align-items: flex-start;
-    text-decoration: none;
-    color: var(--text);
-    transition: border-color 0.15s, transform 0.15s;
-    box-shadow: var(--shadow);
-  }
-  .book-promo:hover {
-    border-color: var(--accent);
-    transform: translateY(-1px);
-  }
-  .book-cover-img {
-    width: 72px;
-    height: auto;
-    flex-shrink: 0;
-    border-radius: 4px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-  }
-  .book-info {
-    flex: 1;
-    min-width: 0;
-  }
-  .book-label {
+  .section-divider {
+    padding: 14px 14px 6px;
     font-size: 9.5px;
-    color: var(--accent);
+    color: var(--text-faint);
     text-transform: uppercase;
     letter-spacing: 0.6px;
-    font-weight: 500;
-    margin-bottom: 4px;
-  }
-  .book-title {
-    font-family: 'Instrument Serif', serif;
-    font-style: italic;
-    font-size: 20px;
-    line-height: 1.1;
-    margin-bottom: 2px;
-  }
-  .book-author {
-    font-size: 11.5px;
-    color: var(--text-muted);
-    margin-bottom: 6px;
-  }
-  .book-tagline {
-    font-size: 11.5px;
-    color: var(--text-muted);
-    line-height: 1.45;
-    margin-bottom: 8px;
-  }
-  .book-tagline em {
-    color: var(--text);
-    font-style: italic;
-  }
-  .book-cta {
-    font-size: 10.5px;
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-    font-weight: 500;
+    background: rgba(0,0,0,0.15);
+    border-top: 1px solid var(--border-soft);
+    border-bottom: 1px solid var(--border-soft);
   }
 
   .fav-btn {
@@ -434,29 +302,19 @@
     color: var(--text-muted); font-size: 12px;
   }
   .error { color: var(--over); }
-
-  .section-divider {
-    padding: 14px 14px 6px;
-    font-size: 9.5px;
-    color: var(--text-faint);
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-    background: rgba(0,0,0,0.15);
-    border-top: 1px solid var(--border-soft);
-    border-bottom: 1px solid var(--border-soft);
-  }
 </style>
 </head>
 <body>
 <div class="app">
   <div class="header">
     <div>
-      <h1 class="pool-title">Carnahan's PGA Championship Pool 2026</h1>
-      <div class="pool-meta" id="pool-meta">Loading tournament…</div>
+      <h1 class="pool-title">PGA Championship Leaderboard</h1>
+      <div class="pool-meta" id="lb-meta">Loading tournament…</div>
     </div>
     <div class="header-actions">
-      <a class="icon-btn with-label" href="leaderboard.html" title="PGA Championship Leaderboard" aria-label="PGA Championship Leaderboard"><span>Leaderboard</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+      <a class="icon-btn with-label" id="back-btn" href="pool.html" title="Back to Pool">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        <span id="back-btn-label">Back to Pool</span>
       </a>
       <button class="icon-btn" id="refresh-btn" title="Refresh now">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
@@ -464,24 +322,9 @@
     </div>
   </div>
 
-    <a class="book-promo" href="https://www.amazon.com/Bluecut-Rills-Ricky-Champagne/dp/B0GSC2LXZ5" target="_blank" rel="noopener">
-    <img class="book-cover-img" src="data:image/jpeg;base64,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" alt="Bluecut Rills cover" />
-    <div class="book-info">
-      <div class="book-label">Friend of the Pool</div>
-      <div class="book-title">Bluecut Rills</div>
-      <div class="book-author">by Ricky Champagne</div>
-      <div class="book-tagline">For fans of <em>Caddyshack</em>, with a dash of <em>Tin Cup</em> and a little less respect for decorum.</div>
-      <div class="book-cta">Find on Amazon →</div>
-    </div>
-  </a>
-
   <div class="status-bar">
     <span><span class="dot"></span><span>Live</span></span>
     <span id="last-updated">—</span>
-  </div>
-
-  <div class="rules-banner">
-    Pick one player from each of 4 tiers. <strong>Best 3 of 4 scores</strong> count toward your total. If <strong>two or more of your golfers miss the cut</strong>, your entry is out. Lowest total to par wins. Tiebreakers: best 4th-golfer score (all four must make the cut), then lowest single round across all four golfers.
   </div>
 
   <div class="find-team">
@@ -489,7 +332,7 @@
       <span class="find-team-icon">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       </span>
-      <input type="text" class="find-team-input" id="find-team-input" placeholder="Find your team…" autocomplete="off" spellcheck="false" />
+      <input type="text" class="find-team-input" id="find-team-input" placeholder="Find a player…" autocomplete="off" spellcheck="false" />
       <button class="find-team-clear" id="find-team-clear" aria-label="Clear search">×</button>
     </div>
     <div class="find-team-status" id="find-team-status"></div>
@@ -506,36 +349,18 @@
 
   const ESPN_URL = 'https://site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard';
   const REFRESH_SECONDS = 180;
-
-  // Pool scoring config
-  const TOTAL_ROUNDS = 4;
-  const COUNT_BEST = 3;          // best 3 of 4
-  const TIER_COUNT = 4;
-  const MC_ELIMINATES_AT = 2;    // 2+ missed cuts = eliminated entry
-
-  // Pool name aliases: pool spelling → ESPN spelling
-  const ALIASES = {
-    'daniel brown': 'dan brown',
-    'john keefer': 'johnny keefer'
-  };
-
-  const SEARCH_KEY = 'carnahanPool:findTeam';
-  const FAVORITES_KEY = 'carnahanPool:favorites';
-
-  // ---- PARTICIPANTS injected here ----
-  const PARTICIPANTS = [{"name":"#SDH 1","picks":["Cameron Young","Brooks Koepka","Kristoffer Reitan","Brian Campbell"]},{"name":"#SDH 2","picks":["Scottie Scheffler","Nicolai Hojgaard","Matt McCarty","Michael Block"]},{"name":"#SDH 3","picks":["Ludvig Aberg","Russell Henley","Ryo Hisatsune","Sudarshan Yellamaraju"]},{"name":"#SDH 4","picks":["Rory McIlroy","Tyrrell Hatton","Keegan Bradley","Emiliano Grillo"]},{"name":"#SDH 5","picks":["Matt Fitzpatrick","Russell Henley","Michael Thorbjornsen","Lucas Glover"]},{"name":"$ndBagr71 - 3","picks":["Rory McIlroy","Tommy Fleetwood","Kristoffer Reitan","Garrick Higgo"]},{"name":"$ndBagr71 -1","picks":["Cameron Young","Sam Burns","Kristoffer Reitan","Aldrich Potgieter"]},{"name":"$ndBagr71-2","picks":["Scottie Scheffler","Russell Henley","Sungjae Im","Andrew Novak"]},{"name":"$ndBagr71-4","picks":["Matt Fitzpatrick","Nicolai Hojgaard","Haotong Li","Michael Block"]},{"name":"$ndBagr71-5","picks":["Matt Fitzpatrick","Rickie Fowler","Michael Thorbjornsen","Matti Schmid"]},{"name":"_CAC_1","picks":["Scottie Scheffler","Akshay Bhatia","Matt McCarty","Ben Kern"]},{"name":"_CAC_2","picks":["Cameron Young","Chris Gotterup","Jacob Bridgeman","Aldrich Potgieter"]},{"name":"!..!/CB","picks":["Scottie Scheffler","Akshay Bhatia","Keegan Bradley","Chris Kirk"]},{"name":"!..!/CBB","picks":["Scottie Scheffler","Justin Rose","Sahith Theegala","Billy Horschel"]},{"name":"@MC16605","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Fitzpatrick","Brandt Snedeker"]},{"name":"*****Clyde Cadiddlehopper*****","picks":["Cameron Young","J.J. Spaun","Matt McCarty","Mikael Lindberg"]},{"name":"##$$AJMAC01","picks":["Scottie Scheffler","Tommy Fleetwood","Kristoffer Reitan","Aldrich Potgieter"]},{"name":"##$$AJMAC02","picks":["Rory McIlroy","Justin Thomas","Alex Fitzpatrick","Andrew Novak"]},{"name":"##$$AJMAC03","picks":["Cameron Young","Patrick Cantlay","Sungjae Im","Rasmus Neergaard-Petersen"]},{"name":"#1Lily","picks":["Scottie Scheffler","Tommy Fleetwood","Sungjae Im","Austin Smotherman"]},{"name":"#jbj1","picks":["Matt Fitzpatrick","Jason Day","Alex Smalley","Lucas Glover"]},{"name":"#jbj2","picks":["Scottie Scheffler","Tommy Fleetwood","Nick Taylor","Andrew Novak"]},{"name":"#jbj3","picks":["Rory McIlroy","Collin Morikawa","Keegan Bradley","Brian Campbell"]},{"name":"#PFW","picks":["Rory McIlroy","Rickie Fowler","Alex Fitzpatrick","Billy Horschel"]},{"name":"#SCOTTLEONARD","picks":["Cameron Young","Justin Rose","Dustin Johnson","Aldrich Potgieter"]},{"name":"$$$$BrittanyVarno$$$$","picks":["Jon Rahm","Tommy Fleetwood","Keegan Bradley","Michael Block"]},{"name":"$$$$StephenVarno$$$$","picks":["Scottie Scheffler","Justin Rose","Sungjae Im","Lucas Glover"]},{"name":"$$$$StephenVarno1$$$$","picks":["Rory McIlroy","Viktor Hovland","Wyndham Clark","Rasmus Neergaard-Petersen"]},{"name":"$essler","picks":["Matt Fitzpatrick","Tyrrell Hatton","Thomas Detry","Andrew Putnam"]},{"name":"1 Bold Move Joan","picks":["Rory McIlroy","Collin Morikawa","Keegan Bradley","Chris Kirk"]},{"name":"1beals","picks":["Rory McIlroy","Justin Rose","Max Homa","Billy Horschel"]},{"name":"1Biscuit","picks":["Jon Rahm","Brooks Koepka","Corey Conners","Chris Kirk"]},{"name":"2 Dollar Bill","picks":["Scottie Scheffler","Tommy Fleetwood","Keegan Bradley","Billy Horschel"]},{"name":"2beals","picks":["Cameron Young","Rickie Fowler","Keegan Bradley","Aldrich Potgieter"]},{"name":"2Lily!","picks":["Ludvig Aberg","Nicolai Hojgaard","Jacob Bridgeman","Steven Fisk"]},{"name":"3beals","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Fitzpatrick","Brandt Snedeker"]},{"name":"3Lily","picks":["Rory McIlroy","Justin Rose","Jacob Bridgeman","William Mouw"]},{"name":"4beals","picks":["Cameron Young","Rickie Fowler","Sahith Theegala","Aldrich Potgieter"]},{"name":"A Deb","picks":["Cameron Young","Tommy Fleetwood","Kristoffer Reitan","Aldrich Potgieter"]},{"name":"A$$hat 1","picks":["Scottie Scheffler","Brooks Koepka","Keegan Bradley","Sudarshan Yellamaraju"]},{"name":"A$$hat 2","picks":["Cameron Young","Justin Rose","Corey Conners","Rasmus Neergaard-Petersen"]},{"name":"A$$hat 3","picks":["Matt Fitzpatrick","Patrick Cantlay","Matt McCarty","Brandt Snedeker"]},{"name":"A$$hat 4","picks":["Scottie Scheffler","Nicolai Hojgaard","Kristoffer Reitan","Lucas Glover"]},{"name":"AA DC","picks":["Scottie Scheffler","Justin Rose","Alex Fitzpatrick","Lucas Glover"]},{"name":"Aaron Semenoff","picks":["Cameron Young","Viktor Hovland","Wyndham Clark","Andrew Novak"]},{"name":"Aaron Semenoff 2","picks":["Rory McIlroy","Tommy Fleetwood","Keegan Bradley","Billy Horschel"]},{"name":"AB Deb","picks":["Rory McIlroy","Justin Thomas","Sungjae Im","Rasmus Neergaard-Petersen"]},{"name":"ABSC","picks":["Cameron Young","Si Woo Kim","Michael Thorbjornsen","Rasmus Neergaard-Petersen"]},{"name":"Adam Gidaro","picks":["Bryson DeChambeau","Brooks Koepka","Jacob Bridgeman","Stewart Cink"]},{"name":"Adam Lester","picks":["Bryson DeChambeau","Jordan Spieth","Keegan Bradley","Billy Horschel"]},{"name":"adler1","picks":["Scottie Scheffler","Chris Gotterup","Alex Fitzpatrick","Casey Jarvis"]},{"name":"adler2","picks":["Scottie Scheffler","J.J. Spaun","Harry Hall","Andrew Putnam"]},{"name":"adler3","picks":["Rory McIlroy","Chris Gotterup","Matt McCarty","Patrick Rodgers"]},{"name":"adler4","picks":["Rory McIlroy","J.J. Spaun","Kristoffer Reitan","Austin Smotherman"]},{"name":"ADupre 1","picks":["Scottie Scheffler","Patrick Reed","Max Homa","Adam Schenk"]},{"name":"ADupre 2","picks":["Cameron Young","J.J. Spaun","Corey Conners","Emiliano Grillo"]},{"name":"AGo1","picks":["Scottie Scheffler","Tommy Fleetwood","Dustin Johnson","Andrew Novak"]},{"name":"AGo2","picks":["Scottie Scheffler","Justin Rose","Christiaan Bezuidenhout","Andrew Novak"]},{"name":"AIAIAI","picks":["Bryson DeChambeau","Tommy Fleetwood","Sungjae Im","Sudarshan Yellamaraju"]},{"name":"ajaku-1","picks":["Rory McIlroy","Patrick Cantlay","Keegan Bradley","Sudarshan Yellamaraju"]},{"name":"ajaku-2","picks":["Cameron Young","Tommy Fleetwood","Thomas Detry","Daniel Hillier"]},{"name":"Alex Burt","picks":["Cameron Young","Patrick Cantlay","Jacob Bridgeman","Chandler Blanchet"]},{"name":"Alexander Christianson","picks":["Scottie Scheffler","Russell Henley","Sungjae Im","Aldrich Potgieter"]},{"name":"ALL IN 1","picks":["Scottie Scheffler","Tommy Fleetwood","Jacob Bridgeman","Andrew Novak"]},{"name":"ALL IN 2","picks":["Scottie Scheffler","Sam Burns","Max Homa","Sudarshan Yellamaraju"]},{"name":"ALL IN 3","picks":["Scottie Scheffler","Patrick Cantlay","Matt McCarty","Andrew Putnam"]},{"name":"ALL IN 4","picks":["Scottie Scheffler","Patrick Reed","Keegan Bradley","Stewart Cink"]},{"name":"ALL IN 5","picks":["Xander Schauffele","Patrick Cantlay","Jacob Bridgeman","Sudarshan Yellamaraju"]},{"name":"ALL IN 6","picks":["Ludvig Aberg","Patrick Cantlay","Matt McCarty","Andrew Novak"]},{"name":"ALL IN 7","picks":["Matt Fitzpatrick","J.J. Spaun","Ryo Hisatsune","Stewart Cink"]},{"name":"ALL IN 8","picks":["Ludvig Aberg","Rickie Fowler","Jacob Bridgeman","Andrew Putnam"]},{"name":"Allen McCoy","picks":["Cameron Young","Viktor Hovland","Corey Conners","Billy Horschel"]},{"name":"Allie and Jack","picks":["Scottie Scheffler","Collin Morikawa","Sungjae Im","Chris Kirk"]},{"name":"Allie and Max","picks":["Cameron Young","Brooks Koepka","Keegan Bradley","Lucas Glover"]},{"name":"Alyssa Oreck","picks":["Matt Fitzpatrick","Si Woo Kim","Sahith Theegala","Chris Kirk"]},{"name":"Amber Lassetter","picks":["Bryson DeChambeau","Tommy Fleetwood","Daniel Berger","Stewart Cink"]},{"name":"Andrew Gruber I","picks":["Cameron Young","Tommy Fleetwood","Alex Fitzpatrick","Billy Horschel"]},{"name":"Andrew Gruber II","picks":["Scottie Scheffler","Tommy Fleetwood","Corey Conners","Andrew Novak"]},{"name":"Andrew Gruber III","picks":["Rory McIlroy","Russell Henley","Sungjae Im","Rasmus Neergaard-Petersen"]},{"name":"Andrew M -1","picks":["Scottie Scheffler","Hideki Matsuyama","Thomas Detry","William Mouw"]},{"name":"Andrew M -2","picks":["Rory McIlroy","Justin Rose","Sahith Theegala","William Mouw"]},{"name":"Andrew M-3","picks":["Scottie Scheffler","Patrick Cantlay","Aaron Rai","William Mouw"]},{"name":"Andrew Mager","picks":["Cameron Young","Tommy Fleetwood","Jacob Bridgeman","Andrew Novak"]},{"name":"Andrew Smith","picks":["Scottie Scheffler","Viktor Hovland","Jacob Bridgeman","Sudarshan Yellamaraju"]},{"name":"Andrew Smith 2","picks":["Cameron Young","Brooks Koepka","Michael Thorbjornsen","Aldrich Potgieter"]},{"name":"Angela Carnahan","picks":["Cameron Young","Gary Woodland","Max Homa","Mikael Lindberg"]},{"name":"Angela K 1","picks":["Ludvig Aberg","Justin Rose","Max Homa","Andrew Novak"]},{"name":"Angela K 2","picks":["Scottie Scheffler","Patrick Cantlay","Keegan Bradley","Aldrich Potgieter"]},{"name":"Anisa","picks":["Matt Fitzpatrick","Tommy Fleetwood","Alex Fitzpatrick","Andrew Novak"]},{"name":"Anne Sacco","picks":["Cameron Young","Rickie Fowler","Alex Fitzpatrick","Aldrich Potgieter"]},{"name":"Annie Jane","picks":["Jon Rahm","Collin Morikawa","Sungjae Im","Chris Kirk"]},{"name":"Anthony Johnson","picks":["Scottie Scheffler","Tommy Fleetwood","Keegan Bradley","Rasmus Neergaard-Petersen"]},{"name":"Apnohr","picks":["Rory McIlroy","Tommy Fleetwood","Aaron Rai","Andrew Novak"]},{"name":"AR 1","picks":["Jon Rahm","Russell Henley","Kristoffer Reitan","Nico Echavarria"]},{"name":"AR 2","picks":["Jon Rahm","Patrick Cantlay","Matt McCarty","Rasmus Neergaard-Petersen"]},{"name":"AR 3","picks":["Jon Rahm","Sam Burns","Kristoffer Reitan","Steven Fisk"]},{"name":"AR 4","picks":["Jon Rahm","Adam Scott","Alex Smalley","Daniel Hillier"]},{"name":"Athena Oreck","picks":["Ludvig Aberg","Maverick McNealy","Wyndham Clark","Brandt Snedeker"]},{"name":"aujpoj1","picks":["Scottie Scheffler","Adam Scott","Haotong Li","Austin Smotherman"]},{"name":"aujpoj3","picks":["Scottie Scheffler","Sepp Straka","Kristoffer Reitan","Patrick Rodgers"]},{"name":"Azzy","picks":["Scottie Scheffler","Brooks Koepka","Marco Penge","Nico Echavarria"]},{"name":"Azzy too","picks":["Ludvig Aberg","Hideki Matsuyama","Jacob Bridgeman","Sudarshan Yellamaraju"]},{"name":"B8man2","picks":["Scottie Scheffler","Akshay Bhatia","Michael Kim","Aldrich Potgieter"]},{"name":"B8msn","picks":["Ludvig Aberg","Tyrrell Hatton","Wyndham Clark","Daniel Hillier"]},{"name":"Bambini Cook","picks":["Bryson DeChambeau","Justin Rose","Kristoffer Reitan","Andrew Novak"]},{"name":"Barbara MacLean","picks":["Rory McIlroy","Collin Morikawa","Jacob Bridgeman","Patrick Rodgers"]},{"name":"Bbkings","picks":["Scottie Scheffler","Collin Morikawa","Aaron Rai","Sudarshan Yellamaraju"]},{"name":"BC","picks":["Cameron Young","Jordan Spieth","Keegan Bradley","Lucas Glover"]},{"name":"Becca B","picks":["Cameron Young","Justin Rose","Sahith Theegala","Lucas Glover"]},{"name":"Ben Euler","picks":["Scottie Scheffler","Justin Rose","Keegan Bradley","Billy Horschel"]},{"name":"Ben Frazier","picks":["Matt Fitzpatrick","Ben Griffin","Kristoffer Reitan","Nico Echavarria"]},{"name":"Ben Saylor","picks":["Rory McIlroy","Brooks Koepka","Wyndham Clark","Billy Horschel"]},{"name":"Ben Saylor 2","picks":["Scottie Scheffler","Tommy Fleetwood","Cameron Smith","Andrew Novak"]},{"name":"Ben Underhill","picks":["Scottie Scheffler","Brooks Koepka","Max Homa","Chris Kirk"]},{"name":"BenignWishes","picks":["Cameron Young","Patrick Cantlay","Corey Conners","Aldrich Potgieter"]},{"name":"BigRickEnergy","picks":["Scottie Scheffler","Rickie Fowler","Kristoffer Reitan","Sudarshan Yellamaraju"]},{"name":"Bill Rapp","picks":["Scottie Scheffler","J.J. Spaun","Kristoffer Reitan","Nico Echavarria"]},{"name":"Billmaier - Dave","picks":["Matt Fitzpatrick","Tyrrell Hatton","Cameron Smith","Emiliano Grillo"]},{"name":"Billmaier James","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Fitzpatrick","Aldrich Potgieter"]},{"name":"Billmaier-Nick","picks":["Rory McIlroy","Justin Rose","Alex Fitzpatrick","Andrew Novak"]},{"name":"BillmaierTom","picks":["Rory McIlroy","Justin Rose","Alex Fitzpatrick","Max McGreevy"]},{"name":"Bird","picks":["Scottie Scheffler","Brooks Koepka","Wyndham Clark","Nico Echavarria"]},{"name":"Birdman #2-2026$$","picks":["Jon Rahm","Chris Gotterup","Keegan Bradley","Patrick Rodgers"]},{"name":"Birdman #3-2026$$$","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Noren","Austin Smotherman"]},{"name":"Birdman#1-2026$","picks":["Scottie Scheffler","Collin Morikawa","Kristoffer Reitan","Sudarshan Yellamaraju"]},{"name":"Blake","picks":["Scottie Scheffler","Tommy Fleetwood","Jacob Bridgeman","Andrew Novak"]},{"name":"Blake 2","picks":["Scottie Scheffler","Patrick Reed","Alex Smalley","John Parry"]},{"name":"Bob Piper 1","picks":["Scottie Scheffler","Collin Morikawa","Corey Conners","Lucas Glover"]},{"name":"Bob Piper 2","picks":["Cameron Young","Tommy Fleetwood","Keegan Bradley","Andrew Novak"]},{"name":"Bob Piper 3","picks":["Rory McIlroy","Tommy Fleetwood","Corey Conners","Andrew Novak"]},{"name":"Bobby P","picks":["Scottie Scheffler","Justin Rose","J.T. Poston","Davis Riley"]},{"name":"BOONE RIPPER","picks":["Matt Fitzpatrick","Collin Morikawa","Wyndham Clark","Lucas Glover"]},{"name":"Boyle1","picks":["Scottie Scheffler","Rickie Fowler","Ryo Hisatsune","Andrew Putnam"]},{"name":"Boyle2","picks":["Scottie Scheffler","Adam Scott","Harry Hall","Andrew Novak"]},{"name":"Boyle3","picks":["Scottie Scheffler","Adam Scott","Brian Harman","Nico Echavarria"]},{"name":"Boyle4","picks":["Rory McIlroy","Rickie Fowler","Harry Hall","Patrick Rodgers"]},{"name":"Boz","picks":["Scottie Scheffler","Justin Thomas","Keegan Bradley","Nico Echavarria"]},{"name":"Brad Sieveke","picks":["Cameron Young","Russell Henley","Sahith Theegala","Jhonattan Vegas"]},{"name":"Brady Huebbe","picks":["Scottie Scheffler","Collin Morikawa","Max Homa","Nico Echavarria"]},{"name":"Brandon Seefeldt","picks":["Cameron Young","Justin Rose","Rasmus Hojgaard","Billy Horschel"]},{"name":"Brandy Popelier","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Fitzpatrick","Aldrich Potgieter"]},{"name":"Brendan Stone","picks":["Scottie Scheffler","Tommy Fleetwood","Jacob Bridgeman","Rasmus Neergaard-Petersen"]},{"name":"Brent Jarvis","picks":["Scottie Scheffler","Viktor Hovland","Max Homa","Billy Horschel"]},{"name":"Brett-Emmertz-1","picks":["Scottie Scheffler","Collin Morikawa","Sungjae Im","Andrew Novak"]},{"name":"brett-emmertz-2","picks":["Jon Rahm","Shane Lowry","Brian Harman","Billy Horschel"]},{"name":"Brian Bauer","picks":["Scottie Scheffler","Justin Rose","Corey Conners","Stewart Cink"]},{"name":"Brian Fippin","picks":["Matt Fitzpatrick","Tommy Fleetwood","Sungjae Im","Aldrich Potgieter"]},{"name":"Brian Keefe","picks":["Scottie Scheffler","Justin Rose","Ryan Fox","Stewart Cink"]},{"name":"Brian Keefe 2","picks":["Jon Rahm","Tyrrell Hatton","Alex Smalley","Andrew Novak"]},{"name":"Brian LaTorre","picks":["Cameron Young","Collin Morikawa","Alex Noren","Aldrich Potgieter"]},{"name":"Brian Levine","picks":["Cameron Young","Justin Rose","Nick Taylor","Aldrich Potgieter"]},{"name":"Brian McLean","picks":["Scottie Scheffler","Collin Morikawa","Keegan Bradley","Billy Horschel"]},{"name":"Brian Plumb","picks":["Rory McIlroy","Jordan Spieth","Alex Fitzpatrick","Ian Holt"]},{"name":"Brian Scorse","picks":["Scottie Scheffler","Justin Rose","Kristoffer Reitan","Brandt Snedeker"]},{"name":"Brian Spencer","picks":["Scottie Scheffler","J.J. Spaun","Keegan Bradley","Daniel Hillier"]},{"name":"BrianG","picks":["Cameron Young","Tommy Fleetwood","Alex Fitzpatrick","David Lipsky"]},{"name":"brine1","picks":["Scottie Scheffler","Rickie Fowler","Alex Smalley","Steven Fisk"]},{"name":"brine2","picks":["Scottie Scheffler","Nicolai Hojgaard","Pierceson Coody","Casey Jarvis"]},{"name":"brine3","picks":["Jon Rahm","Rickie Fowler","Thomas Detry","John Parry"]},{"name":"brine4","picks":["Jon Rahm","Chris Gotterup","Alex Noren","Stewart Cink"]},{"name":"Brog1","picks":["Jon Rahm","Min Woo Lee","Alex Fitzpatrick","Austin Smotherman"]},{"name":"Brog2","picks":["Jon Rahm","Nicolai Hojgaard","Alex Noren","Casey Jarvis"]},{"name":"Brog3","picks":["Rory McIlroy","Min Woo Lee","Keegan Bradley","John Parry"]},{"name":"Brog4","picks":["Rory McIlroy","Tyrrell Hatton","Nick Taylor","Nico Echavarria"]},{"name":"Brothers of Fitz","picks":["Matt Fitzpatrick","Tyrrell Hatton","Alex Fitzpatrick","Andrew Novak"]},{"name":"bry1","picks":["Scottie Scheffler","Min Woo Lee","Harry Hall","John Parry"]},{"name":"bry2","picks":["Rory McIlroy","Min Woo Lee","Aaron Rai","Andrew Novak"]},{"name":"bry3","picks":["Xander Schauffele","Brooks Koepka","Keegan Bradley","Austin Smotherman"]},{"name":"bry4","picks":["Ludvig Aberg","Tommy Fleetwood","Kristoffer Reitan","Aldrich Potgieter"]},{"name":"Bryan Lynch","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Fitzpatrick","Austin Smotherman"]},{"name":"Bryan McKrell","picks":["Scottie Scheffler","Justin Thomas","Wyndham Clark","Austin Smotherman"]},{"name":"Bryson Boatwright","picks":["Scottie Scheffler","J.J. Spaun","Keegan Bradley","Patrick Rodgers"]},{"name":"Bryson DeChamblow","picks":["Scottie Scheffler","Tommy Fleetwood","Keegan Bradley","Nico Echavarria"]},{"name":"Bud Barnes","picks":["Cameron Young","Gary Woodland","Matt McCarty","Nico Echavarria"]},{"name":"BYERSUSA","picks":["Scottie Scheffler","Collin Morikawa","Sungjae Im","Andrew Novak"]},{"name":"BYERSUSA2","picks":["Scottie Scheffler","Brooks Koepka","Sungjae Im","Andrew Novak"]},{"name":"BYERSUSA3","picks":["Scottie Scheffler","Tommy Fleetwood","Sungjae Im","Andrew Novak"]},{"name":"BYERSUSA4","picks":["Scottie Scheffler","Collin Morikawa","Wyndham Clark","Brandt Snedeker"]},{"name":"C Bird 1","picks":["Cameron Young","Tommy Fleetwood","Max Homa","Billy Horschel"]},{"name":"C Bird 2","picks":["Rory McIlroy","Justin Thomas","Kristoffer Reitan","Garrick Higgo"]},{"name":"C Bird 3","picks":["Scottie Scheffler","Tommy Fleetwood","Wyndham Clark","Jhonattan Vegas"]},{"name":"C Bird 4","picks":["Cameron Young","Jake Knapp","Alex Fitzpatrick","Chris Kirk"]},{"name":"Caleb Betschart","picks":["Scottie Scheffler","Brooks Koepka","Keith Mitchell","Andrew Putnam"]},{"name":"Camper Kenny","picks":["Rory McIlroy","Justin Rose","Max Homa","Billy Horschel"]},{"name":"Canadian bacon","picks":["Scottie Scheffler","J.J. Spaun","Kristoffer Reitan","Austin Smotherman"]},{"name":"candy","picks":["Cameron Young","Tommy Fleetwood","Corey Conners","Andrew Novak"]},{"name":"Candy 1","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Fitzpatrick","Chris Kirk"]},{"name":"Candy 2","picks":["Scottie Scheffler","Rickie Fowler","Kristoffer Reitan","Andrew Novak"]},{"name":"Candy 3","picks":["Cameron Young","Chris Gotterup","Jacob Bridgeman","Andrew Novak"]},{"name":"Candy 4","picks":["Xander Schauffele","Russell Henley","Keegan Bradley","Andrew Putnam"]},{"name":"Carp1","picks":["Scottie Scheffler","Hideki Matsuyama","Jacob Bridgeman","Aldrich Potgieter"]},{"name":"Carrie Laudon","picks":["Cameron Young","Tommy Fleetwood","Thomas Detry","Daniel Hillier"]},{"name":"Carson K1","picks":["Scottie Scheffler","Adam Scott","Wyndham Clark","Andrew Novak"]},{"name":"Carson K2","picks":["Rory McIlroy","Min Woo Lee","Rasmus Hojgaard","Daniel Brown"]},{"name":"Carson K3","picks":["Cameron Young","Collin Morikawa","Corey Conners","Aldrich Potgieter"]},{"name":"Casey Reimers I","picks":["Scottie Scheffler","Tyrrell Hatton","Alex Fitzpatrick","Sudarshan Yellamaraju"]},{"name":"Casey Reimers II","picks":["Scottie Scheffler","Russell Henley","Alex Noren","Andrew Putnam"]},{"name":"Casey Reimers III","picks":["Cameron Young","Tommy Fleetwood","Alex Smalley","Sudarshan Yellamaraju"]},{"name":"Casey Reimers IV","picks":["Ludvig Aberg","Sepp Straka","Corey Conners","Sudarshan Yellamaraju"]},{"name":"Casey Reimers V","picks":["Rory McIlroy","Rickie Fowler","Matt McCarty","Daniel Brown"]},{"name":"CDRAKE1","picks":["Scottie Scheffler","Brooks Koepka","Alex Fitzpatrick","Patrick Rodgers"]},{"name":"CDRAKE2","picks":["Cameron Young","Tommy Fleetwood","Alex Fitzpatrick","Bernd Wiesberger"]},{"name":"CDRAKE3","picks":["Scottie Scheffler","Rickie Fowler","Rasmus Hojgaard","Bernd Wiesberger"]},{"name":"CDRAKE4","picks":["Ludvig Aberg","Kurt Kitayama","Kristoffer Reitan","Patrick Rodgers"]},{"name":"Chad Gottschalk","picks":["Cameron Young","Patrick Cantlay","Corey Conners","Andrew Novak"]},{"name":"Chad is Bad 1","picks":["Scottie Scheffler","Si Woo Kim","Alex Fitzpatrick","Patrick Rodgers"]},{"name":"Chad is Bad 2","picks":["Bryson DeChambeau","Rickie Fowler","Alex Smalley","Austin Smotherman"]},{"name":"Charitable donation","picks":["Xander Schauffele","Patrick Reed","Max Homa","David Lipsky"]},{"name":"Charly Vallenari","picks":["Scottie Scheffler","Patrick Reed","Max Homa","Rasmus Neergaard-Petersen"]},{"name":"Cheryl McGee 1","picks":["Jon Rahm","Viktor Hovland","Keegan Bradley","Chris Kirk"]},{"name":"Chet Davis","picks":["Scottie Scheffler","Justin Rose","Alex Smalley","Aldrich Potgieter"]},{"name":"Chris Bykowski","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Fitzpatrick","Brandt Snedeker"]},{"name":"Chris Curtis","picks":["Matt Fitzpatrick","Brooks Koepka","Daniel Berger","Nico Echavarria"]},{"name":"Chris Huss","picks":["Cameron Young","Tommy Fleetwood","Kristoffer Reitan","Andrew Putnam"]},{"name":"Chris Kelly","picks":["Bryson DeChambeau","Jordan Spieth","Corey Conners","Aldrich Potgieter"]},{"name":"Chris Long","picks":["Ludvig Aberg","Patrick Cantlay","Sungjae Im","Andrew Novak"]},{"name":"Chris Running","picks":["Rory McIlroy","Tommy Fleetwood","Jacob Bridgeman","Andrew Novak"]},{"name":"Christina Imus 1","picks":["Scottie Scheffler","Collin Morikawa","Alex Fitzpatrick","Lucas Glover"]},{"name":"Christina Imus 2","picks":["Cameron Young","Tommy Fleetwood","Alex Smalley","Aldrich Potgieter"]},{"name":"Christina Imus 3","picks":["Matt Fitzpatrick","Brooks Koepka","Sungjae Im","Billy Horschel"]},{"name":"Christina Imus 4","picks":["Scottie Scheffler","Justin Rose","Keegan Bradley","Emiliano Grillo"]},{"name":"Christina Imus 5","picks":["Cameron Young","Tyrrell Hatton","Corey Conners","Lucas Glover"]},{"name":"Chuck tracy","picks":["Cameron Young","Tommy Fleetwood","Bud Cauley","Matti Schmid"]},{"name":"CJL","picks":["Scottie Scheffler","Tommy Fleetwood","Max Homa","Aldrich Potgieter"]},{"name":"Cody Bean","picks":["Jon Rahm","Tommy Fleetwood","Alex Fitzpatrick","Lucas Glover"]},{"name":"Cody Couch","picks":["Rory McIlroy","Tyrrell Hatton","Matt McCarty","Sudarshan Yellamaraju"]},{"name":"Colby Brenner","picks":["Cameron Young","Rickie Fowler","Brian Harman","Patrick Rodgers"]},{"name":"Cole Kenny 1","picks":["Scottie Scheffler","Jordan Spieth","Jacob Bridgeman","Austin Smotherman"]},{"name":"Cole Kenny 2","picks":["Cameron Young","Sam Burns","Alex Fitzpatrick","Joe Highsmith"]},{"name":"Constable A","picks":["Scottie Scheffler","Brooks Koepka","Corey Conners","Patrick Rodgers"]},{"name":"Constable B","picks":["Cameron Young","Rickie Fowler","Alex Fitzpatrick","Aldrich Potgieter"]},{"name":"Constable C.","picks":["Matt Fitzpatrick","Tommy Fleetwood","Wyndham Clark","Padraig Harrington"]},{"name":"Constable D.","picks":["Bryson DeChambeau","Justin Rose","Sungjae Im","Andrew Novak"]},{"name":"Constable E.","picks":["Xander Schauffele","Jordan Spieth","Rasmus Hojgaard","Emiliano Grillo"]},{"name":"Cooper Renteria","picks":["Scottie Scheffler","Justin Rose","Rasmus Hojgaard","Chandler Blanchet"]},{"name":"Copilot","picks":["Scottie Scheffler","Collin Morikawa","Keegan Bradley","Lucas Glover"]},{"name":"Corey Mueller","picks":["Ludvig Aberg","Tommy Fleetwood","Nick Taylor","Chris Kirk"]},{"name":"Corey Schmidt","picks":["Scottie Scheffler","Tyrrell Hatton","Kristoffer Reitan","Billy Horschel"]},{"name":"Corey Shandrew","picks":["Scottie Scheffler","Si Woo Kim","Keith Mitchell","Aldrich Potgieter"]},{"name":"Corey Trzinski","picks":["Cameron Young","Brooks Koepka","Keegan Bradley","Y.E. Yang"]},{"name":"Cory Fernandez team 1","picks":["Rory McIlroy","Rickie Fowler","Corey Conners","Nico Echavarria"]},{"name":"CraigSoCal","picks":["Ludvig Aberg","Akshay Bhatia","Sungjae Im","Billy Horschel"]},{"name":"CRamirez","picks":["Cameron Young","Tommy Fleetwood","Kristoffer Reitan","Sudarshan Yellamaraju"]},{"name":"CRamirez 2","picks":["Cameron Young","Gary Woodland","Thomas Detry","Patrick Rodgers"]},{"name":"CRawlings0","picks":["Jon Rahm","Hideki Matsuyama","Cameron Smith","Matti Schmid"]},{"name":"CRawlings1","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Smalley","Sudarshan Yellamaraju"]},{"name":"CRawlings2","picks":["Ludvig Aberg","J.J. Spaun","Alex Smalley","Sudarshan Yellamaraju"]},{"name":"CRawlings3","picks":["Rory McIlroy","Brooks Koepka","Alex Noren","Austin Smotherman"]},{"name":"CRawlings4","picks":["Ludvig Aberg","Tommy Fleetwood","Matt McCarty","Sudarshan Yellamaraju"]},{"name":"CRawlings5","picks":["Scottie Scheffler","J.J. Spaun","Matt McCarty","Sudarshan Yellamaraju"]},{"name":"CRawlings6","picks":["Rory McIlroy","Tommy Fleetwood","Alex Noren","Sudarshan Yellamaraju"]},{"name":"CRawlings7","picks":["Cameron Young","Tommy Fleetwood","Alex Smalley","Sudarshan Yellamaraju"]},{"name":"CRawlings8","picks":["Ludvig Aberg","Adam Scott","Alex Smalley","Aldrich Potgieter"]},{"name":"CRawlings9","picks":["Scottie Scheffler","Adam Scott","Matt McCarty","Sudarshan Yellamaraju"]},{"name":"criley1","picks":["Scottie Scheffler","Russell Henley","Ryo Hisatsune","Casey Jarvis"]},{"name":"Criley2","picks":["Scottie Scheffler","Min Woo Lee","Alex Smalley","Nico Echavarria"]},{"name":"Criley3","picks":["Scottie Scheffler","Chris Gotterup","Kristoffer Reitan","Rasmus Neergaard-Petersen"]},{"name":"Criley4","picks":["Rory McIlroy","Sam Burns","Thomas Detry","Andrew Novak"]},{"name":"Criley5","picks":["Scottie Scheffler","Chris Gotterup","Kristoffer Reitan","Rasmus Neergaard-Petersen"]},{"name":"Cross1","picks":["Scottie Scheffler","Tommy Fleetwood","Nick Taylor","Andrew Novak"]},{"name":"Cross2","picks":["Scottie Scheffler","Tommy Fleetwood","Kristoffer Reitan","Andrew Novak"]},{"name":"CRUSHINISHI 1","picks":["Scottie Scheffler","Brooks Koepka","Alex Fitzpatrick","Andrew Novak"]},{"name":"CRUSHINISHI 2","picks":["Cameron Young","Brooks Koepka","Alex Fitzpatrick","Rasmus Neergaard-Petersen"]},{"name":"CRUSHINISHI 3","picks":["Scottie Scheffler","Brooks Koepka","Alex Fitzpatrick","Chris Kirk"]},{"name":"cshrop1","picks":["Scottie Scheffler","Min Woo Lee","Nick Taylor","Casey Jarvis"]},{"name":"cshrop2","picks":["Scottie Scheffler","Patrick Cantlay","Rasmus Hojgaard","Aldrich Potgieter"]},{"name":"cshrop3","picks":["Cameron Young","Min Woo Lee","Keegan Bradley","Andrew Putnam"]},{"name":"cshrop4","picks":["Cameron Young","Adam Scott","Harry Hall","Andrew Novak"]},{"name":"Curtis Ecanlea Jr","picks":["Scottie Scheffler","Justin Thomas","Corey Conners","Lucas Glover"]},{"name":"Curtis Ecanlea Sr","picks":["Bryson DeChambeau","Min Woo Lee","Dustin Johnson","Martin Kaymer"]},{"name":"Dan Scott","picks":["Rory McIlroy","Jordan Spieth","Kristoffer Reitan","Brandt Snedeker"]},{"name":"Dana George","picks":["Scottie Scheffler","Patrick Cantlay","Alex Fitzpatrick","Davis Riley"]},{"name":"Dane Oppliger","picks":["Cameron Young","Kurt Kitayama","Alex Fitzpatrick","Patrick Rodgers"]},{"name":"Dane Running","picks":["Scottie Scheffler","Justin Rose","Keegan Bradley","Billy Horschel"]},{"name":"Dave Baskins","picks":["Scottie Scheffler","Tommy Fleetwood","Harry Hall","Patrick Rodgers"]},{"name":"Dave Nelson","picks":["Scottie Scheffler","Chris Gotterup","Keegan Bradley","Brandt Snedeker"]},{"name":"DAVEMAN#1","picks":["Rory McIlroy","Tyrrell Hatton","Harry Hall","Andrew Novak"]},{"name":"DAVEMAN#2","picks":["Scottie Scheffler","Patrick Cantlay","Haotong Li","Lucas Glover"]},{"name":"DAVEMAN#3","picks":["Bryson DeChambeau","Min Woo Lee","Alex Smalley","Billy Horschel"]},{"name":"DAVEMAN#4","picks":["Scottie Scheffler","Min Woo Lee","Sungjae Im","Billy Horschel"]},{"name":"DAVEMAN#5","picks":["Matt Fitzpatrick","Patrick Cantlay","Sungjae Im","Andrew Novak"]},{"name":"David Corsaro","picks":["Scottie Scheffler","Justin Thomas","Kristoffer Reitan","Andrew Novak"]},{"name":"David Corsaro 2","picks":["Scottie Scheffler","Tommy Fleetwood","Sahith Theegala","Aldrich Potgieter"]},{"name":"DAVID HARVEY","picks":["Scottie Scheffler","Tyrrell Hatton","Corey Conners","Rasmus Neergaard-Petersen"]},{"name":"David Lyons1","picks":["Scottie Scheffler","Justin Rose","Corey Conners","Lucas Glover"]},{"name":"David Lyons2","picks":["Xander Schauffele","Tommy Fleetwood","Keegan Bradley","Andrew Novak"]},{"name":"David Lyons3","picks":["Matt Fitzpatrick","Viktor Hovland","Alex Fitzpatrick","Billy Horschel"]},{"name":"David pacheco","picks":["Rory McIlroy","Rickie Fowler","Keegan Bradley","Brian Campbell"]},{"name":"Dawson Kenny","picks":["Scottie Scheffler","Tommy Fleetwood","Sahith Theegala","Nico Echavarria"]},{"name":"Day on the green","picks":["Scottie Scheffler","Justin Rose","J.T. Poston","Ian Holt"]},{"name":"DEENABrown1","picks":["Cameron Young","Brooks Koepka","Michael Thorbjornsen","Kota Kaneko"]},{"name":"Deezy1","picks":["Scottie Scheffler","Adam Scott","Sungjae Im","Casey Jarvis"]},{"name":"Deezy2","picks":["Jon Rahm","Collin Morikawa","Alex Fitzpatrick","Rasmus Neergaard-Petersen"]},{"name":"Denny Amundson","picks":["Scottie Scheffler","Tommy Fleetwood","Kristoffer Reitan","Tom Hoge"]},{"name":"Denny/Shark","picks":["Cameron Young","Chris Gotterup","Kristoffer Reitan","Tom Hoge"]},{"name":"DensesTripod93","picks":["Scottie Scheffler","Tommy Fleetwood","Sungjae Im","Max McGreevy"]},{"name":"Derek Bell 1","picks":["Cameron Young","Jordan Spieth","Dustin Johnson","Derek Berg"]},{"name":"Derek Bell 2","picks":["Scottie Scheffler","Brooks Koepka","Sahith Theegala","Nico Echavarria"]},{"name":"Dfresh","picks":["Scottie Scheffler","Tommy Fleetwood","Sungjae Im","Nico Echavarria"]},{"name":"DFresh1","picks":["Ludvig Aberg","Tyrrell Hatton","Alex Fitzpatrick","Sudarshan Yellamaraju"]},{"name":"DFresh2","picks":["Matt Fitzpatrick","Tommy Fleetwood","Keegan Bradley","Austin Smotherman"]},{"name":"DFresh3","picks":["Cameron Young","Rickie Fowler","J.T. Poston","Jhonattan Vegas"]},{"name":"DFresh4","picks":["Ludvig Aberg","J.J. Spaun","Keegan Bradley","Austin Smotherman"]},{"name":"Dillard","picks":["Scottie Scheffler","Tommy Fleetwood","Sahith Theegala","Patrick Rodgers"]},{"name":"DKenny","picks":["Scottie Scheffler","Collin Morikawa","Corey Conners","Lucas Glover"]},{"name":"Don Fordiani","picks":["Scottie Scheffler","Collin Morikawa","Jacob Bridgeman","Aldrich Potgieter"]},{"name":"DONGERNEEDSFOOD","picks":["Cameron Young","Si Woo Kim","Alex Fitzpatrick","Stewart Cink"]},{"name":"Donnie Larry","picks":["Rory McIlroy","Justin Rose","Cameron Smith","Y.E. Yang"]},{"name":"Douglas","picks":["Cameron Young","Gary Woodland","Alex Fitzpatrick","Billy Horschel"]},{"name":"Downtown","picks":["Rory McIlroy","Rickie Fowler","Max Homa","Max McGreevy"]},{"name":"Dphenix","picks":["Scottie Scheffler","Justin Rose","Sungjae Im","Aldrich Potgieter"]},{"name":"DRAF1","picks":["Rory McIlroy","Sam Burns","Keegan Bradley","Billy Horschel"]},{"name":"DRAF2","picks":["Cameron Young","Russell Henley","Haotong Li","Rasmus Neergaard-Petersen"]},{"name":"Drew Enos","picks":["Scottie Scheffler","Sepp Straka","Alex Fitzpatrick","Mikael Lindberg"]},{"name":"Drew Taylor","picks":["Scottie Scheffler","Tommy Fleetwood","Sungjae Im","Adam Schenk"]},{"name":"Drew Taylor","picks":["Cameron Young","Brooks Koepka","Max Homa","Andrew Novak"]},{"name":"Drewski's Boyz","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Fitzpatrick","Brandt Snedeker"]},{"name":"Drock1","picks":["Rory McIlroy","Tommy Fleetwood","Matt McCarty","Mikael Lindberg"]},{"name":"drock2","picks":["Cameron Young","Tommy Fleetwood","Matt McCarty","Mikael Lindberg"]},{"name":"drock3","picks":["Cameron Young","Rickie Fowler","Alex Smalley","Lucas Glover"]},{"name":"drock4","picks":["Scottie Scheffler","Adam Scott","Jacob Bridgeman","Billy Horschel"]},{"name":"drock5","picks":["Matt Fitzpatrick","Tyrrell Hatton","Alex Fitzpatrick","Lucas Glover"]},{"name":"DRP1964","picks":["Jon Rahm","Rickie Fowler","Sungjae Im","Brandt Snedeker"]},{"name":"Dusty","picks":["Scottie Scheffler","Collin Morikawa","Corey Conners","Lucas Glover"]},{"name":"E. ROBSON","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Fitzpatrick","Daniel Hillier"]},{"name":"Eddie Vecchiarelli","picks":["Bryson DeChambeau","Justin Thomas","Aaron Rai","Andrew Novak"]},{"name":"EddieV","picks":["Scottie Scheffler","Viktor Hovland","Corey Conners","Billy Horschel"]},{"name":"EddieV3","picks":["Xander Schauffele","Brooks Koepka","Brian Harman","Chris Kirk"]},{"name":"EddieV4","picks":["Jon Rahm","Patrick Cantlay","Wyndham Clark","Andrew Putnam"]},{"name":"EddieV5","picks":["Cameron Young","Sam Burns","Sahith Theegala","Max McGreevy"]},{"name":"Elizabeth haeling","picks":["Ludvig Aberg","Tyrrell Hatton","Wyndham Clark","Billy Horschel"]},{"name":"Emett Grazier","picks":["Scottie Scheffler","Tommy Fleetwood","Cameron Smith","Austin Hurt"]},{"name":"Eric B","picks":["Xander Schauffele","Brooks Koepka","Corey Conners","Andrew Novak"]},{"name":"ERIC FARRIS 1","picks":["Matt Fitzpatrick","Tommy Fleetwood","Keegan Bradley","Billy Horschel"]},{"name":"ERIC FARRIS 2","picks":["Scottie Scheffler","Patrick Cantlay","Rasmus Hojgaard","Max McGreevy"]},{"name":"Eric Ortiz","picks":["Scottie Scheffler","Tommy Fleetwood","Kristoffer Reitan","Michael Block"]},{"name":"Eric Pettersen","picks":["Rory McIlroy","Justin Rose","Corey Conners","Rasmus Neergaard-Petersen"]},{"name":"Eric Snyder","picks":["Scottie Scheffler","Shane Lowry","Corey Conners","Andrew Novak"]},{"name":"Evan Barrett 1","picks":["Scottie Scheffler","Russell Henley","Corey Conners","Andrew Novak"]},{"name":"Evan Barrett 2","picks":["Cameron Young","Chris Gotterup","Alex Smalley","Lucas Glover"]},{"name":"Evan Barrett 3","picks":["Xander Schauffele","Justin Thomas","Sungjae Im","Stewart Cink"]},{"name":"Evan Cook","picks":["Cameron Young","Justin Rose","Wyndham Clark","Aldrich Potgieter"]},{"name":"Fairways and Greens","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Fitzpatrick","Sudarshan Yellamaraju"]},{"name":"Faith Haeling","picks":["Rory McIlroy","Viktor Hovland","Sahith Theegala","Andrew Novak"]},{"name":"Fanny1","picks":["Rory McIlroy","Nicolai Hojgaard","Alex Fitzpatrick","Casey Jarvis"]},{"name":"Fanny2","picks":["Rory McIlroy","Patrick Cantlay","Alex Smalley","Daniel Hillier"]},{"name":"Fanny3","picks":["Xander Schauffele","Collin Morikawa","Harry Hall","John Parry"]},{"name":"Fanny4","picks":["Ludvig Aberg","Collin Morikawa","Thomas Detry","Rasmus Neergaard-Petersen"]},{"name":"Fernando Gaudy","picks":["Scottie Scheffler","Collin Morikawa","Jacob Bridgeman","John Keefer"]},{"name":"Fitz 1","picks":["Scottie Scheffler","Tommy Fleetwood","Corey Conners","Andrew Novak"]},{"name":"Fitz 2","picks":["Cameron Young","Justin Rose","Keegan Bradley","Patrick Rodgers"]},{"name":"FONIE1","picks":["Scottie Scheffler","Russell Henley","Jacob Bridgeman","Austin Smotherman"]},{"name":"FONIE2","picks":["Matt Fitzpatrick","Collin Morikawa","Keegan Bradley","Billy Horschel"]},{"name":"FONIE3","picks":["Jon Rahm","Tommy Fleetwood","Keith Mitchell","Aldrich Potgieter"]},{"name":"FONIE4","picks":["Rory McIlroy","Robert MacIntyre","Angel Ayora","Andrew Novak"]},{"name":"Fred Cook","picks":["Scottie Scheffler","Rickie Fowler","Alex Fitzpatrick","Austin Smotherman"]},{"name":"Fredo1","picks":["Rory McIlroy","Patrick Cantlay","Sungjae Im","Billy Horschel"]},{"name":"Fredo2","picks":["Scottie Scheffler","Justin Rose","Sahith Theegala","Rasmus Neergaard-Petersen"]},{"name":"Freitrain #1","picks":["Scottie Scheffler","Justin Rose","Kristoffer Reitan","Billy Horschel"]},{"name":"Freitrain #2","picks":["Rory McIlroy","Tyrrell Hatton","Max Greyserman","Martin Kaymer"]},{"name":"Freitrain #3","picks":["Scottie Scheffler","Collin Morikawa","Sungjae Im","Jhonattan Vegas"]},{"name":"Freitrain #4","picks":["Ludvig Aberg","Viktor Hovland","Max Homa","Davis Riley"]},{"name":"Freitrain #5","picks":["Scottie Scheffler","Sam Burns","Aaron Rai","Garrick Higgo"]},{"name":"Freitrain #6","picks":["Scottie Scheffler","Rickie Fowler","Haotong Li","Jhonattan Vegas"]},{"name":"Gabriel Michael","picks":["Cameron Young","Sepp Straka","Corey Conners","Aldrich Potgieter"]},{"name":"Gail Nevarez","picks":["Scottie Scheffler","Tommy Fleetwood","Keegan Bradley","Sudarshan Yellamaraju"]},{"name":"Garrett Lambert 1","picks":["Scottie Scheffler","Tommy Fleetwood","Keegan Bradley","Billy Horschel"]},{"name":"Garrett Lambert 2","picks":["Rory McIlroy","Justin Rose","Keegan Bradley","Billy Horschel"]},{"name":"Garrett Lash","picks":["Scottie Scheffler","Brooks Koepka","Alex Fitzpatrick","Andrew Novak"]},{"name":"GBtahoe","picks":["Scottie Scheffler","Tommy Fleetwood","Aaron Rai","Chris Kirk"]},{"name":"gchase1","picks":["Scottie Scheffler","Sepp Straka","Ryan Gerard","Nico Echavarria"]},{"name":"gchase2","picks":["Scottie Scheffler","Min Woo Lee","Haotong Li","Andrew Novak"]},{"name":"gchase3","picks":["Cameron Young","Sepp Straka","Harry Hall","Max McGreevy"]},{"name":"gchase4","picks":["Xander Schauffele","Collin Morikawa","Alex Smalley","Andrew Putnam"]},{"name":"GDG Collectibles","picks":["Xander Schauffele","Justin Rose","Keegan Bradley","Jhonattan Vegas"]},{"name":"GDG TCG/SPORTS","picks":["Bryson DeChambeau","Rickie Fowler","Keegan Bradley","Rasmus Neergaard-Petersen"]},{"name":"Getting closer","picks":["Xander Schauffele","Brooks Koepka","Wyndham Clark","Rasmus Neergaard-Petersen"]},{"name":"Getting Minnered","picks":["Scottie Scheffler","Collin Morikawa","Corey Conners","Lucas Glover"]},{"name":"Getting Minnered again","picks":["Rory McIlroy","Viktor Hovland","Keegan Bradley","Andrew Novak"]},{"name":"Ghume1","picks":["Cameron Young","Tommy Fleetwood","Ryo Hisatsune","Billy Horschel"]},{"name":"Ghume2","picks":["Scottie Scheffler","Patrick Cantlay","Rasmus Hojgaard","Brandt Snedeker"]},{"name":"Ghume3","picks":["Matt Fitzpatrick","Viktor Hovland","Brian Harman","Sami Valimaki"]},{"name":"Ginger Cat","picks":["Scottie Scheffler","Tommy Fleetwood","Sungjae Im","Nico Echavarria"]},{"name":"Ginger Cat 2","picks":["Jon Rahm","Russell Henley","Thomas Detry","Patrick Rodgers"]},{"name":"Ginger Cat 3","picks":["Cameron Young","Collin Morikawa","Corey Conners","Emiliano Grillo"]},{"name":"Gloria Carnahan","picks":["Rory McIlroy","Justin Rose","Jacob Bridgeman","Stewart Cink"]},{"name":"Graeme Coyle","picks":["Jon Rahm","Brooks Koepka","Marco Penge","Billy Horschel"]},{"name":"Grande Orso","picks":["Bryson DeChambeau","Hideki Matsuyama","Alex Smalley","Patrick Rodgers"]},{"name":"Grayson Erickson","picks":["Rory McIlroy","Russell Henley","Dustin Johnson","Chris Kirk"]},{"name":"Grayson erickson","picks":["Cameron Young","Viktor Hovland","Ryan Gerard","Billy Horschel"]},{"name":"Greg B","picks":["Jon Rahm","Brooks Koepka","Cameron Smith","Billy Horschel"]},{"name":"Gregory Garcia","picks":["Scottie Scheffler","Tommy Fleetwood","Michael Thorbjornsen","Stewart Cink"]},{"name":"Greta","picks":["Bryson DeChambeau","Si Woo Kim","Keegan Bradley","Jhonattan Vegas"]},{"name":"Griffin Davis","picks":["Cameron Young","Patrick Cantlay","Kristoffer Reitan","Brandt Snedeker"]},{"name":"Grinder1","picks":["Rory McIlroy","Brooks Koepka","Jacob Bridgeman","Patrick Rodgers"]},{"name":"Grinders2","picks":["Cameron Young","Justin Rose","Alex Fitzpatrick","Rasmus Neergaard-Petersen"]},{"name":"HALEY","picks":["Rory McIlroy","Tommy Fleetwood","Harry Hall","Aldrich Potgieter"]},{"name":"HALEY2","picks":["Cameron Young","Justin Rose","Alex Fitzpatrick","Nico Echavarria"]},{"name":"Hayden Jones","picks":["Cameron Young","Jordan Spieth","Keegan Bradley","Mikael Lindberg"]},{"name":"Heath Langle 1","picks":["Scottie Scheffler","Collin Morikawa","Corey Conners","Max McGreevy"]},{"name":"Heath Langle 2","picks":["Ludvig Aberg","Viktor Hovland","Alex Noren","Rasmus Neergaard-Petersen"]},{"name":"Herman1","picks":["Scottie Scheffler","Justin Rose","Alex Fitzpatrick","Aldrich Potgieter"]},{"name":"Herman2","picks":["Cameron Young","Si Woo Kim","Alex Noren","Brandt Snedeker"]},{"name":"Herman3","picks":["Cameron Young","Justin Rose","Jacob Bridgeman","Aldrich Potgieter"]},{"name":"Herman4","picks":["Matt Fitzpatrick","Hideki Matsuyama","Alex Fitzpatrick","Austin Smotherman"]},{"name":"Herman5","picks":["Scottie Scheffler","Ben Griffin","Sungjae Im","Austin Smotherman"]},{"name":"Hit the Cutoff Nate","picks":["Scottie Scheffler","Justin Rose","Ryan Fox","Billy Horschel"]},{"name":"HK #1","picks":["Scottie Scheffler","Collin Morikawa","Keegan Bradley","Billy Horschel"]},{"name":"HK #2","picks":["Scottie Scheffler","Tommy Fleetwood","Corey Conners","Rasmus Neergaard-Petersen"]},{"name":"HK #3","picks":["Cameron Young","Robert MacIntyre","Alex Fitzpatrick","Nico Echavarria"]},{"name":"HK #4","picks":["Rory McIlroy","Tyrrell Hatton","Sungjae Im","Rasmus Neergaard-Petersen"]},{"name":"HK #5","picks":["Ludvig Aberg","Jordan Spieth","Michael Thorbjornsen","Patrick Rodgers"]},{"name":"Hoppy Dawg","picks":["Cameron Young","Rickie Fowler","Kristoffer Reitan","Sudarshan Yellamaraju"]},{"name":"Hops & Fitz bros","picks":["Matt Fitzpatrick","Tyrrell Hatton","Alex Fitzpatrick","Sudarshan Yellamaraju"]},{"name":"Hot Tub","picks":["Rory McIlroy","Justin Rose","Keegan Bradley","Aldrich Potgieter"]},{"name":"Huey H.","picks":["Scottie Scheffler","Tommy Fleetwood","Wyndham Clark","Aldrich Potgieter"]},{"name":"Huey Jr.","picks":["Bryson DeChambeau","Russell Henley","Corey Conners","Garrick Higgo"]},{"name":"Huey T","picks":["Scottie Scheffler","Brooks Koepka","Alex Fitzpatrick","Billy Horschel"]},{"name":"Hurricane 1","picks":["Scottie Scheffler","Collin Morikawa","Jacob Bridgeman","Billy Horschel"]},{"name":"Hurricane 2","picks":["Rory McIlroy","Tyrrell Hatton","Keegan Bradley","David Lipsky"]},{"name":"Hurricane 3","picks":["Matt Fitzpatrick","Tommy Fleetwood","Alex Fitzpatrick","Patrick Rodgers"]},{"name":"I know my measurements","picks":["Scottie Scheffler","Maverick McNealy","Max Homa","Max McGreevy"]},{"name":"Ian Courtright","picks":["Scottie Scheffler","Tyrrell Hatton","Michael Thorbjornsen","Billy Horschel"]},{"name":"J Auble 1","picks":["Cameron Young","Collin Morikawa","Sungjae Im","Austin Smotherman"]},{"name":"J Auble 2","picks":["Bryson DeChambeau","Kurt Kitayama","Sungjae Im","Nico Echavarria"]},{"name":"J Grawey","picks":["Scottie Scheffler","Justin Rose","Max Homa","Max McGreevy"]},{"name":"J Saylor 01","picks":["Bryson DeChambeau","Shane Lowry","Alex Fitzpatrick","David Lipsky"]},{"name":"J Scott Christman","picks":["Rory McIlroy","Viktor Hovland","Corey Conners","Patrick Rodgers"]},{"name":"J-Cat","picks":["Scottie Scheffler","Tyrrell Hatton","Max Homa","John Keefer"]},{"name":"Jack P","picks":["Rory McIlroy","Collin Morikawa","Keegan Bradley","Billy Horschel"]},{"name":"Jacob Jones","picks":["Cameron Young","Tommy Fleetwood","Michael Thorbjornsen","Aldrich Potgieter"]},{"name":"Jaimie Galeano 1","picks":["Scottie Scheffler","Brooks Koepka","Keegan Bradley","Lucas Glover"]},{"name":"Jaimie Galeano 2","picks":["Rory McIlroy","Collin Morikawa","Sungjae Im","Andrew Novak"]},{"name":"Jaimie Galeano 3","picks":["Xander Schauffele","Jordan Spieth","Corey Conners","Stewart Cink"]},{"name":"Jaimie Galeano 4","picks":["Cameron Young","Shane Lowry","Daniel Berger","Andrew Putnam"]},{"name":"Jallus","picks":["Cameron Young","Russell Henley","Keegan Bradley","Sudarshan Yellamaraju"]},{"name":"Jallus23","picks":["Cameron Young","Tyrrell Hatton","Sungjae Im","Sudarshan Yellamaraju"]},{"name":"james granucci","picks":["Rory McIlroy","Patrick Reed","Harry Hall","Braden Shattuck"]},{"name":"James Levi - 1","picks":["Xander Schauffele","Tyrrell Hatton","Alex Smalley","Aldrich Potgieter"]},{"name":"James Rafter Jr","picks":["Scottie Scheffler","Viktor Hovland","Kristoffer Reitan","Sudarshan Yellamaraju"]},{"name":"Jan Harlan","picks":["Matt Fitzpatrick","Tommy Fleetwood","Alex Fitzpatrick","Sudarshan Yellamaraju"]},{"name":"Jan Harlan1","picks":["Scottie Scheffler","Rickie Fowler","Corey Conners","Aldrich Potgieter"]},{"name":"Jared Smits","picks":["Ludvig Aberg","Collin Morikawa","Keegan Bradley","Emiliano Grillo"]},{"name":"Jarrad Brenek","picks":["Rory McIlroy","Justin Rose","Keegan Bradley","Billy Horschel"]},{"name":"Jason Caine - 1","picks":["Rory McIlroy","Brooks Koepka","Alex Fitzpatrick","Billy Horschel"]},{"name":"Jason Heise","picks":["Scottie Scheffler","Tommy Fleetwood","Kristoffer Reitan","Austin Smotherman"]},{"name":"Jason Myers 1","picks":["Rory McIlroy","Tommy Fleetwood","Brian Harman","Jhonattan Vegas"]},{"name":"Jason Myers 2","picks":["Matt Fitzpatrick","Justin Rose","Marco Penge","Nico Echavarria"]},{"name":"Jason Myers 3","picks":["Scottie Scheffler","Justin Rose","Alex Fitzpatrick","Emiliano Grillo"]},{"name":"Jay Burns","picks":["Scottie Scheffler","Rickie Fowler","Keegan Bradley","Aldrich Potgieter"]},{"name":"Jay Burns2","picks":["Scottie Scheffler","Tommy Fleetwood","Corey Conners","Aldrich Potgieter"]},{"name":"Jay Gentry_1","picks":["Scottie Scheffler","Tommy Fleetwood","Sungjae Im","Lucas Glover"]},{"name":"Jay Gentry_2","picks":["Rory McIlroy","Collin Morikawa","Corey Conners","Emiliano Grillo"]},{"name":"Jay Haak","picks":["Scottie Scheffler","Jordan Spieth","Alex Fitzpatrick","Billy Horschel"]},{"name":"Jay Haeling","picks":["Cameron Young","Justin Rose","Alex Fitzpatrick","Casey Jarvis"]},{"name":"Jayster","picks":["Rory McIlroy","Brooks Koepka","Kristoffer Reitan","Austin Smotherman"]},{"name":"Jayster2","picks":["Bryson DeChambeau","Chris Gotterup","Brian Harman","Andrew Putnam"]},{"name":"Jayster3","picks":["Jon Rahm","Patrick Reed","Wyndham Clark","Billy Horschel"]},{"name":"JC1","picks":["Scottie Scheffler","Patrick Cantlay","Matt Wallace","John Parry"]},{"name":"JC2","picks":["Scottie Scheffler","Kurt Kitayama","Aaron Rai","Casey Jarvis"]},{"name":"JC3","picks":["Cameron Young","Patrick Cantlay","Alex Noren","Rasmus Neergaard-Petersen"]},{"name":"JC4","picks":["Cameron Young","Chris Gotterup","Keegan Bradley","Daniel Hillier"]},{"name":"Jeff McLame 69","picks":["Matt Fitzpatrick","Robert MacIntyre","Thomas Detry","Patrick Rodgers"]},{"name":"Jeff Smith","picks":["Cameron Young","Hideki Matsuyama","Sungjae Im","Billy Horschel"]},{"name":"Jenni Horner","picks":["Bryson DeChambeau","Tommy Fleetwood","Jacob Bridgeman","Austin Smotherman"]},{"name":"Jennifer Norman","picks":["Rory McIlroy","Tommy Fleetwood","Sahith Theegala","Billy Horschel"]},{"name":"Jeorgie Thompson","picks":["Cameron Young","Justin Thomas","Sungjae Im","Matti Schmid"]},{"name":"Jeremy Preddy","picks":["Rory McIlroy","Tommy Fleetwood","Alex Fitzpatrick","David Lipsky"]},{"name":"Jeremy Preddy 2","picks":["Cameron Young","Justin Rose","Keegan Bradley","Patrick Rodgers"]},{"name":"JH","picks":["Scottie Scheffler","Rickie Fowler","Alex Smalley","Sudarshan Yellamaraju"]},{"name":"JH1","picks":["Cameron Young","Russell Henley","Keegan Bradley","Davis Riley"]},{"name":"JH2","picks":["Scottie Scheffler","Russell Henley","Brian Harman","Lucas Glover"]},{"name":"JH3","picks":["Cameron Young","Justin Rose","Max Homa","Emiliano Grillo"]},{"name":"JH4","picks":["Cameron Young","Tommy Fleetwood","Wyndham Clark","Billy Horschel"]},{"name":"JH5","picks":["Scottie Scheffler","J.J. Spaun","Sahith Theegala","Andrew Novak"]},{"name":"jim granucci","picks":["Rory McIlroy","Robert MacIntyre","Kristoffer Reitan","Andrew Novak"]},{"name":"Jim Tracy","picks":["Scottie Scheffler","Justin Thomas","Sungjae Im","Aldrich Potgieter"]},{"name":"Jlansbury1","picks":["Rory McIlroy","J.J. Spaun","Matt McCarty","Aldrich Potgieter"]},{"name":"Jlansbury2","picks":["Rory McIlroy","Adam Scott","Alex Fitzpatrick","Sudarshan Yellamaraju"]},{"name":"Jlansbury3","picks":["Matt Fitzpatrick","Adam Scott","Matt McCarty","Aldrich Potgieter"]},{"name":"Jlansbury4","picks":["Matt Fitzpatrick","Adam Scott","Matt McCarty","Sudarshan Yellamaraju"]},{"name":"Jle32's guess","picks":["Scottie Scheffler","Justin Rose","Kristoffer Reitan","Billy Horschel"]},{"name":"JM Larson","picks":["Scottie Scheffler","Jordan Spieth","Keith Mitchell","Andrew Novak"]},{"name":"Joe Koch","picks":["Bryson DeChambeau","Brooks Koepka","Rasmus Hojgaard","Billy Horschel"]},{"name":"Joe Niehaus","picks":["Scottie Scheffler","Russell Henley","Alex Smalley","Stewart Cink"]},{"name":"Joey B","picks":["Cameron Young","Collin Morikawa","Corey Conners","Lucas Glover"]},{"name":"John Adair","picks":["Jon Rahm","Tommy Fleetwood","Wyndham Clark","Andrew Novak"]},{"name":"John Koch","picks":["Rory McIlroy","Justin Thomas","Keegan Bradley","Austin Smotherman"]},{"name":"John Norman 1","picks":["Cameron Young","Justin Rose","Kristoffer Reitan","Andrew Novak"]},{"name":"John Norman 2","picks":["Scottie Scheffler","Jordan Spieth","Jacob Bridgeman","Aldrich Potgieter"]},{"name":"Jon Walker","picks":["Scottie Scheffler","Brooks Koepka","Keegan Bradley","Andrew Novak"]},{"name":"Jordan Conkling","picks":["Scottie Scheffler","Jordan Spieth","Alex Fitzpatrick","John Keefer"]},{"name":"Jordan Thompson","picks":["Scottie Scheffler","Chris Gotterup","Sahith Theegala","Chris Kirk"]},{"name":"Jorge Carr","picks":["Cameron Young","Brooks Koepka","Alex Fitzpatrick","Jhonattan Vegas"]},{"name":"Jorge Carr 2","picks":["Scottie Scheffler","Jordan Spieth","Kristoffer Reitan","Austin Smotherman"]},{"name":"JOSH AUSTIN SCHMIDT","picks":["Scottie Scheffler","Patrick Cantlay","Sungjae Im","Andrew Novak"]},{"name":"Josh Olson","picks":["Scottie Scheffler","Chris Gotterup","Wyndham Clark","John Keefer"]},{"name":"Joshua lutz","picks":["Scottie Scheffler","Harris English","Haotong Li","Andrew Novak"]},{"name":"JPStone","picks":["Cameron Young","Collin Morikawa","Jacob Bridgeman","Andrew Novak"]},{"name":"Juan Hernandez","picks":["Scottie Scheffler","Justin Rose","Wyndham Clark","Andrew Putnam"]},{"name":"Julian Kay #1","picks":["Scottie Scheffler","Nicolai Hojgaard","Kristoffer Reitan","Brandt Snedeker"]},{"name":"Julian Kay #2","picks":["Scottie Scheffler","Rickie Fowler","Haotong Li","Aldrich Potgieter"]},{"name":"Julie Huppert","picks":["Scottie Scheffler","Collin Morikawa","Corey Conners","Lucas Glover"]},{"name":"JUngacta1111111111","picks":["Scottie Scheffler","Tommy Fleetwood","Keegan Bradley","Garrick Higgo"]},{"name":"JUngacta2222222222","picks":["Xander Schauffele","Chris Gotterup","Sahith Theegala","Emiliano Grillo"]},{"name":"Jungacta3333333333","picks":["Bryson DeChambeau","Viktor Hovland","Max Homa","Andrew Novak"]},{"name":"Jungacta4444444444","picks":["Scottie Scheffler","Russell Henley","Rasmus Hojgaard","Aldrich Potgieter"]},{"name":"Just Beat Matt","picks":["Scottie Scheffler","Tommy Fleetwood","Jacob Bridgeman","Patrick Rodgers"]},{"name":"Justin Baker","picks":["Bryson DeChambeau","Shane Lowry","Corey Conners","Aldrich Potgieter"]},{"name":"Justin Taylor","picks":["Cameron Young","Brooks Koepka","Daniel Berger","Patrick Rodgers"]},{"name":"JVV","picks":["Scottie Scheffler","Tommy Fleetwood","Keegan Bradley","Chris Kirk"]},{"name":"JVV-1","picks":["Cameron Young","Brooks Koepka","Alex Smalley","Sudarshan Yellamaraju"]},{"name":"JVV-2","picks":["Ludvig Aberg","Russell Henley","Keegan Bradley","Sudarshan Yellamaraju"]},{"name":"Kaden DuChene","picks":["Scottie Scheffler","Nicolai Hojgaard","Jacob Bridgeman","Sudarshan Yellamaraju"]},{"name":"Kam1","picks":["Cameron Young","Jason Day","Wyndham Clark","Rasmus Neergaard-Petersen"]},{"name":"Kasey Thompson 1","picks":["Scottie Scheffler","Brooks Koepka","Alex Smalley","Sudarshan Yellamaraju"]},{"name":"Kasey Thompson 10","picks":["Cameron Young","Collin Morikawa","Max Homa","Tom Hoge"]},{"name":"Kasey Thompson 11","picks":["Scottie Scheffler","Collin Morikawa","Brian Harman","Sudarshan Yellamaraju"]},{"name":"Kasey Thompson 12","picks":["Scottie Scheffler","Jordan Spieth","Max Homa","Brian Campbell"]},{"name":"Kasey Thompson 13","picks":["Ludvig Aberg","Tyrrell Hatton","Alex Smalley","Sudarshan Yellamaraju"]},{"name":"Kasey Thompson 14","picks":["Cameron Young","Min Woo Lee","Wyndham Clark","Sudarshan Yellamaraju"]},{"name":"Kasey Thompson 2","picks":["Scottie Scheffler","Gary Woodland","Max Homa","Sudarshan Yellamaraju"]},{"name":"Kasey Thompson 3","picks":["Jon Rahm","Collin Morikawa","Keegan Bradley","Tom Hoge"]},{"name":"Kasey Thompson 4","picks":["Jon Rahm","Tommy Fleetwood","Sungjae Im","Sudarshan Yellamaraju"]},{"name":"Kasey Thompson 5","picks":["Cameron Young","Justin Thomas","Sahith Theegala","Daniel Hillier"]},{"name":"Kasey Thompson 6","picks":["Cameron Young","Justin Rose","Wyndham Clark","Sami Valimaki"]},{"name":"Kasey Thompson 7","picks":["Bryson DeChambeau","Russell Henley","Keegan Bradley","Nico Echavarria"]},{"name":"Kasey Thompson 8","picks":["Rory McIlroy","Tommy Fleetwood","Alex Fitzpatrick","Tom Hoge"]},{"name":"Kasey Thompson 9","picks":["Scottie Scheffler","Collin Morikawa","Keegan Bradley","Sudarshan Yellamaraju"]},{"name":"Katherine Reimers","picks":["Cameron Young","Tommy Fleetwood","Kristoffer Reitan","Andrew Novak"]},{"name":"Katie Preddy","picks":["Cameron Young","Chris Gotterup","Jacob Bridgeman","Aldrich Potgieter"]},{"name":"Katie Preddy 2","picks":["Matt Fitzpatrick","Justin Rose","Kristoffer Reitan","Patrick Rodgers"]},{"name":"Katie Zeck","picks":["Ludvig Aberg","Hideki Matsuyama","Michael Thorbjornsen","Steven Fisk"]},{"name":"KCrim1","picks":["Cameron Young","Chris Gotterup","Aaron Rai","Andrew Novak"]},{"name":"KCrim2","picks":["Rory McIlroy","Kurt Kitayama","Sungjae Im","Brandt Snedeker"]},{"name":"KCrim3","picks":["Scottie Scheffler","J.J. Spaun","Alex Fitzpatrick","Austin Smotherman"]},{"name":"Keith Lynch","picks":["Rory McIlroy","Brooks Koepka","Kristoffer Reitan","Y.E. Yang"]},{"name":"KelvoTheBesto","picks":["Cameron Young","Chris Gotterup","Keegan Bradley","Andrew Novak"]},{"name":"Ketcher","picks":["Scottie Scheffler","Tommy Fleetwood","Wyndham Clark","Ben Kern"]},{"name":"Kevin #1","picks":["Scottie Scheffler","Viktor Hovland","Daniel Berger","Max McGreevy"]},{"name":"Kevin #2","picks":["Ludvig Aberg","Collin Morikawa","Sahith Theegala","Billy Horschel"]},{"name":"Kevin Carmody","picks":["Cameron Young","Russell Henley","Alex Fitzpatrick","Andrew Novak"]},{"name":"Kevin Hardy","picks":["Cameron Young","Justin Thomas","Alex Fitzpatrick","Jhonattan Vegas"]},{"name":"Kevin Hardy2","picks":["Scottie Scheffler","Russell Henley","Sungjae Im","John Parry"]},{"name":"Kevin Hardy3","picks":["Jon Rahm","Rickie Fowler","Sahith Theegala","Patrick Rodgers"]},{"name":"Kevin Hill","picks":["Ludvig Aberg","Patrick Cantlay","Wyndham Clark","Andrew Putnam"]},{"name":"Kevin King","picks":["Ludvig Aberg","Brooks Koepka","Dustin Johnson","Stewart Cink"]},{"name":"Kevin McKim","picks":["Matt Fitzpatrick","Si Woo Kim","Keegan Bradley","Rasmus Neergaard-Petersen"]},{"name":"Kevin Michael Sheehan","picks":["Scottie Scheffler","Patrick Reed","Sungjae Im","Billy Horschel"]},{"name":"Kevin Myers","picks":["Scottie Scheffler","Si Woo Kim","Matt McCarty","Austin Smotherman"]},{"name":"Kfaria","picks":["Cameron Young","Russell Henley","Aaron Rai","Lucas Glover"]},{"name":"KGBBALL10","picks":["Scottie Scheffler","Tommy Fleetwood","Kristoffer Reitan","Austin Smotherman"]},{"name":"Kim Watson","picks":["Rory McIlroy","Tommy Fleetwood","Michael Thorbjornsen","Andrew Novak"]},{"name":"KittleNRascal","picks":["Cameron Young","Justin Thomas","Alex Fitzpatrick","Sudarshan Yellamaraju"]},{"name":"KittyKittyMeowMeow","picks":["Scottie Scheffler","Tommy Fleetwood","Sungjae Im","Lucas Glover"]},{"name":"KK#1","picks":["Jon Rahm","Min Woo Lee","Harry Hall","Daniel Hillier"]},{"name":"KK#2","picks":["Jon Rahm","Sepp Straka","Alex Fitzpatrick","Andrew Putnam"]},{"name":"KK#3","picks":["Scottie Scheffler","Maverick McNealy","Nick Taylor","Andrew Novak"]},{"name":"KK#4","picks":["Rory McIlroy","Chris Gotterup","Alex Fitzpatrick","Austin Smotherman"]},{"name":"Kkenny 1","picks":["Cameron Young","Justin Rose","Keegan Bradley","Rasmus Neergaard-Petersen"]},{"name":"KKenny2","picks":["Scottie Scheffler","Justin Thomas","Kristoffer Reitan","Lucas Glover"]},{"name":"Kontor14","picks":["Cameron Young","Justin Thomas","Matt McCarty","Bernd Wiesberger"]},{"name":"Kosh","picks":["Scottie Scheffler","Collin Morikawa","Jacob Bridgeman","Aldrich Potgieter"]},{"name":"Kosh II","picks":["Matt Fitzpatrick","Russell Henley","Alex Fitzpatrick","Billy Horschel"]},{"name":"Kosh III","picks":["Cameron Young","Rickie Fowler","Sungjae Im","Stewart Cink"]},{"name":"KosherKingCobra","picks":["Bryson DeChambeau","Tyrrell Hatton","Max Homa","Nico Echavarria"]},{"name":"Kris Gerke","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Fitzpatrick","Rasmus Neergaard-Petersen"]},{"name":"Kristoffer Kalmbach","picks":["Scottie Scheffler","Tommy Fleetwood","Jacob Bridgeman","Billy Horschel"]},{"name":"Kurt Burris","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Fitzpatrick","Padraig Harrington"]},{"name":"Kyle Higgins 1","picks":["Scottie Scheffler","Justin Thomas","Keegan Bradley","Rasmus Neergaard-Petersen"]},{"name":"Kyle Higgins 2","picks":["Matt Fitzpatrick","Sam Burns","Rasmus Hojgaard","Andrew Novak"]},{"name":"Kyle Welch 1","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Fitzpatrick","Brandt Snedeker"]},{"name":"Kyle Welch 2","picks":["Cameron Young","Justin Rose","Max Homa","Billy Horschel"]},{"name":"KyleSals","picks":["Rory McIlroy","Tommy Fleetwood","Matt McCarty","Nico Echavarria"]},{"name":"KyleSals2","picks":["Rory McIlroy","Collin Morikawa","Michael Thorbjornsen","Daniel Hillier"]},{"name":"KyleSals3","picks":["Jon Rahm","Collin Morikawa","Wyndham Clark","Daniel Hillier"]},{"name":"KyleSals4","picks":["Ludvig Aberg","Jordan Spieth","Alex Noren","Daniel Hillier"]},{"name":"KyleSals5","picks":["Scottie Scheffler","Collin Morikawa","Wyndham Clark","Martin Kaymer"]},{"name":"Lambert 1","picks":["Scottie Scheffler","Justin Thomas","Keegan Bradley","Billy Horschel"]},{"name":"Lambert 2","picks":["Cameron Young","Collin Morikawa","Thomas Detry","Andrew Novak"]},{"name":"Landon DuChene","picks":["Cameron Young","Tommy Fleetwood","Sahith Theegala","Aldrich Potgieter"]},{"name":"Landon Kenny","picks":["Matt Fitzpatrick","Collin Morikawa","Sungjae Im","Aldrich Potgieter"]},{"name":"lanemac24","picks":["Scottie Scheffler","Rickie Fowler","Harry Hall","Mikael Lindberg"]},{"name":"Lango 2","picks":["Cameron Young","Justin Rose","Corey Conners","Andrew Novak"]},{"name":"Lango 3","picks":["Ludvig Aberg","Russell Henley","Sungjae Im","Max McGreevy"]},{"name":"Lango 4","picks":["Xander Schauffele","Si Woo Kim","Kristoffer Reitan","Andrew Novak"]},{"name":"Lango1","picks":["Scottie Scheffler","Tommy Fleetwood","Jacob Bridgeman","Aldrich Potgieter"]},{"name":"Larrys Yard Dog","picks":["Matt Fitzpatrick","Patrick Cantlay","Jacob Bridgeman","Rasmus Neergaard-Petersen"]},{"name":"LAST_MAN_IN_1","picks":["Scottie Scheffler","Viktor Hovland","Sungjae Im","Patrick Rodgers"]},{"name":"LAST_MAN_IN_2","picks":["Scottie Scheffler","Justin Rose","Nick Taylor","Chris Kirk"]},{"name":"Lauren Rice","picks":["Scottie Scheffler","Tommy Fleetwood","Sungjae Im","Andrew Novak"]},{"name":"Lazlo","picks":["Cameron Young","Patrick Cantlay","Jacob Bridgeman","Andrew Novak"]},{"name":"Leslie Laudon","picks":["Scottie Scheffler","Russell Henley","Kristoffer Reitan","Sudarshan Yellamaraju"]},{"name":"Lewis Lassetter","picks":["Ludvig Aberg","Viktor Hovland","Corey Conners","Sudarshan Yellamaraju"]},{"name":"Lilazzy","picks":["Cameron Young","Tyrrell Hatton","Michael Thorbjornsen","Max McGreevy"]},{"name":"Lilazzy too","picks":["Bryson DeChambeau","Tommy Fleetwood","Sahith Theegala","Billy Horschel"]},{"name":"Lisa Nicolini","picks":["Scottie Scheffler","Tommy Fleetwood","Sungjae Im","Andrew Novak"]},{"name":"Luke Benni","picks":["Scottie Scheffler","Chris Gotterup","Corey Conners","Billy Horschel"]},{"name":"Luke Vivolo","picks":["Cameron Young","Tommy Fleetwood","Kristoffer Reitan","Andrew Putnam"]},{"name":"Lydia Nevarez","picks":["Scottie Scheffler","Justin Rose","Keegan Bradley","Andrew Novak"]},{"name":"Lyons","picks":["Rory McIlroy","Justin Rose","Alex Noren","Patrick Rodgers"]},{"name":"Lyons2","picks":["Matt Fitzpatrick","Tommy Fleetwood","Alex Fitzpatrick","Rasmus Neergaard-Petersen"]},{"name":"Lyons3","picks":["Scottie Scheffler","Brooks Koepka","Keegan Bradley","Andrew Novak"]},{"name":"Lyons4","picks":["Cameron Young","Collin Morikawa","Sungjae Im","Billy Horschel"]},{"name":"Lyons5","picks":["Scottie Scheffler","Justin Thomas","Sahith Theegala","Nico Echavarria"]},{"name":"M4TT O","picks":["Cameron Young","Collin Morikawa","Keegan Bradley","Aldrich Potgieter"]},{"name":"Macalott","picks":["Scottie Scheffler","Sam Burns","Corey Conners","Andrew Novak"]},{"name":"Macalott","picks":["Cameron Young","Tommy Fleetwood","Corey Conners","Andrew Novak"]},{"name":"Macalott #2","picks":["Ludvig Aberg","Rickie Fowler","Christiaan Bezuidenhout","Brandt Snedeker"]},{"name":"Mama Deac #1","picks":["Scottie Scheffler","Tommy Fleetwood","Jacob Bridgeman","Andrew Novak"]},{"name":"Mama Deac #2","picks":["Cameron Young","Brooks Koepka","Jacob Bridgeman","Andrew Novak"]},{"name":"marc Walloupe","picks":["Scottie Scheffler","Justin Rose","Keegan Bradley","Andrew Novak"]},{"name":"Marie Anderson","picks":["Scottie Scheffler","Rickie Fowler","Max Homa","Brandt Snedeker"]},{"name":"Mark Eissler","picks":["Rory McIlroy","Tyrrell Hatton","Kristoffer Reitan","Jhonattan Vegas"]},{"name":"Mark Harlan","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Fitzpatrick","Sudarshan Yellamaraju"]},{"name":"Mark Summers","picks":["Scottie Scheffler","Ben Griffin","Keegan Bradley","Davis Riley"]},{"name":"Mark Summers#2","picks":["Bryson DeChambeau","Jordan Spieth","Alex Fitzpatrick","Andrew Novak"]},{"name":"Mark Wolter","picks":["Cameron Young","Tommy Fleetwood","Jacob Bridgeman","Andrew Novak"]},{"name":"Mary MacLean","picks":["Scottie Scheffler","Tommy Fleetwood","Nick Taylor","Sudarshan Yellamaraju"]},{"name":"Mary Paul","picks":["Cameron Young","Si Woo Kim","Corey Conners","Lucas Glover"]},{"name":"Masker1","picks":["Scottie Scheffler","Tommy Fleetwood","Jacob Bridgeman","Rasmus Neergaard-Petersen"]},{"name":"Masker2","picks":["Scottie Scheffler","Brooks Koepka","Sungjae Im","Aldrich Potgieter"]},{"name":"Masker3","picks":["Rory McIlroy","Tommy Fleetwood","Michael Thorbjornsen","Andrew Novak"]},{"name":"Mathew J Bradley","picks":["Cameron Young","Russell Henley","Alex Fitzpatrick","Mikael Lindberg"]},{"name":"Matt Baringer","picks":["Scottie Scheffler","Jordan Spieth","Max Homa","Billy Horschel"]},{"name":"Matt Culver","picks":["Scottie Scheffler","Jordan Spieth","Sungjae Im","Austin Smotherman"]},{"name":"Matt Hines 1","picks":["Cameron Young","Tommy Fleetwood","Alex Fitzpatrick","Stewart Cink"]},{"name":"Matt Hines 2","picks":["Scottie Scheffler","Tommy Fleetwood","Jacob Bridgeman","Rasmus Neergaard-Petersen"]},{"name":"Matt Sanchez","picks":["Scottie Scheffler","Justin Rose","Aaron Rai","Lucas Glover"]},{"name":"Matt Spenhoff","picks":["Scottie Scheffler","Tommy Fleetwood","Sahith Theegala","Andrew Novak"]},{"name":"Matt Spenhoff 2","picks":["Cameron Young","Justin Rose","Sungjae Im","Aldrich Potgieter"]},{"name":"Mattguz1","picks":["Scottie Scheffler","Tommy Fleetwood","Corey Conners","Billy Horschel"]},{"name":"Mattguz2","picks":["Xander Schauffele","Collin Morikawa","Max Homa","Billy Horschel"]},{"name":"Mattguz3","picks":["Scottie Scheffler","Collin Morikawa","Corey Conners","Lucas Glover"]},{"name":"Mattguz4","picks":["Cameron Young","Justin Rose","Sungjae Im","Andrew Novak"]},{"name":"Matthew Gaudy","picks":["Scottie Scheffler","Patrick Cantlay","Christiaan Bezuidenhout","Sudarshan Yellamaraju"]},{"name":"Matthew Wixted_1","picks":["Cameron Young","Justin Rose","Keegan Bradley","Billy Horschel"]},{"name":"Matthew Wixted_2","picks":["Jon Rahm","Sepp Straka","Michael Kim","Matti Schmid"]},{"name":"Matthew Wixted_3","picks":["Scottie Scheffler","Justin Rose","Keegan Bradley","Davis Riley"]},{"name":"Mattk01","picks":["Scottie Scheffler","Collin Morikawa","Keegan Bradley","Billy Horschel"]},{"name":"Mattk02","picks":["Rory McIlroy","Tommy Fleetwood","Aaron Rai","Sami Valimaki"]},{"name":"meesh1","picks":["Rory McIlroy","Patrick Cantlay","Ryan Gerard","Steven Fisk"]},{"name":"meesh2","picks":["Rory McIlroy","Russell Henley","Brian Harman","Austin Smotherman"]},{"name":"meesh3","picks":["Xander Schauffele","Tommy Fleetwood","Ryan Gerard","Casey Jarvis"]},{"name":"meesh4","picks":["Xander Schauffele","Brooks Koepka","Kristoffer Reitan","Nico Echavarria"]},{"name":"Melissa Saylor","picks":["Rory McIlroy","Hideki Matsuyama","Alex Fitzpatrick","William Mouw"]},{"name":"MFEEHAN530","picks":["Scottie Scheffler","Tommy Fleetwood","Keegan Bradley","William Mouw"]},{"name":"Michael Anderson","picks":["Ludvig Aberg","Tommy Fleetwood","Michael Thorbjornsen","Aldrich Potgieter"]},{"name":"Michael Desmond","picks":["Scottie Scheffler","Justin Rose","Keegan Bradley","Padraig Harrington"]},{"name":"Michael Donovan","picks":["Scottie Scheffler","Jake Knapp","Jacob Bridgeman","Andrew Putnam"]},{"name":"Michael Eggink 1","picks":["Scottie Scheffler","Tommy Fleetwood","Kristoffer Reitan","Sudarshan Yellamaraju"]},{"name":"Michael Eggink 2","picks":["Cameron Young","Rickie Fowler","Wyndham Clark","Sudarshan Yellamaraju"]},{"name":"Michael Knecht","picks":["Cameron Young","Tommy Fleetwood","Harry Hall","Sudarshan Yellamaraju"]},{"name":"Michael Watson","picks":["Scottie Scheffler","Justin Rose","Alex Fitzpatrick","Aldrich Potgieter"]},{"name":"Mike Crowell","picks":["Scottie Scheffler","Tommy Fleetwood","Sungjae Im","Andrew Novak"]},{"name":"Mike Dfense","picks":["Scottie Scheffler","Collin Morikawa","Sahith Theegala","Aldrich Potgieter"]},{"name":"Mike Dfense2","picks":["Cameron Young","Chris Gotterup","Matt McCarty","Billy Horschel"]},{"name":"Mike Dulen","picks":["Scottie Scheffler","Collin Morikawa","Alex Noren","Billy Horschel"]},{"name":"Mike Frame","picks":["Cameron Young","Si Woo Kim","Alex Fitzpatrick","Aldrich Potgieter"]},{"name":"Mike G.","picks":["Rory McIlroy","Justin Rose","Sungjae Im","Aldrich Potgieter"]},{"name":"Mike Metzger","picks":["Scottie Scheffler","Brooks Koepka","Sahith Theegala","Aldrich Potgieter"]},{"name":"Mike Miguel","picks":["Bryson DeChambeau","Justin Thomas","Alex Fitzpatrick","Max McGreevy"]},{"name":"Mill T.","picks":["Cameron Young","Tommy Fleetwood","Jacob Bridgeman","Jason Dufner"]},{"name":"Mitch Bortolotto","picks":["Scottie Scheffler","Collin Morikawa","Max Homa","Billy Horschel"]},{"name":"Mitchell Refnes","picks":["Scottie Scheffler","Jake Knapp","Max Homa","Austin Smotherman"]},{"name":"Mo Payne","picks":["Cameron Young","Justin Rose","Aaron Rai","Jhonattan Vegas"]},{"name":"moedog 1","picks":["Scottie Scheffler","Justin Rose","Rasmus Hojgaard","Andrew Novak"]},{"name":"moedog 2","picks":["Matt Fitzpatrick","Si Woo Kim","Keegan Bradley","Rasmus Neergaard-Petersen"]},{"name":"Moose","picks":["Scottie Scheffler","Tommy Fleetwood","Wyndham Clark","John Keefer"]},{"name":"MPD#1","picks":["Scottie Scheffler","Si Woo Kim","Alex Fitzpatrick","Stewart Cink"]},{"name":"MPD#2","picks":["Rory McIlroy","Chris Gotterup","Kristoffer Reitan","Stewart Cink"]},{"name":"mskoro1","picks":["Scottie Scheffler","Tyrrell Hatton","Haotong Li","Austin Smotherman"]},{"name":"mskoro2","picks":["Scottie Scheffler","Sam Burns","Matt Wallace","Steven Fisk"]},{"name":"mskoro3","picks":["Jon Rahm","Tyrrell Hatton","Ryan Gerard","Andrew Novak"]},{"name":"mskoro4","picks":["Cameron Young","Tyrrell Hatton","Alex Smalley","Max McGreevy"]},{"name":"Mt Shasta Johnson 1","picks":["Scottie Scheffler","Akshay Bhatia","Jacob Bridgeman","Austin Smotherman"]},{"name":"Mt Shasta Johnson 2","picks":["Cameron Young","Justin Rose","Ryan Gerard","Andrew Putnam"]},{"name":"Mt Shasta Johnson 3","picks":["Ludvig Aberg","Rickie Fowler","Alex Smalley","John Parry"]},{"name":"MVCC Pickels 2","picks":["Rory McIlroy","J.J. Spaun","Sungjae Im","Aldrich Potgieter"]},{"name":"MVCC Pickels 4","picks":["Scottie Scheffler","Chris Gotterup","Max Homa","Patrick Rodgers"]},{"name":"MVCC Pickles","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Fitzpatrick","Rasmus Neergaard-Petersen"]},{"name":"MVCC Pickles 1","picks":["Scottie Scheffler","Brooks Koepka","Jacob Bridgeman","Aldrich Potgieter"]},{"name":"MVCC Pickles 3","picks":["Cameron Young","Sam Burns","Max Homa","Andrew Novak"]},{"name":"Nate Carnahan","picks":["Scottie Scheffler","Chris Gotterup","Matt McCarty","Austin Smotherman"]},{"name":"Nate Linsey","picks":["Cameron Young","Min Woo Lee","Keegan Bradley","Billy Horschel"]},{"name":"Nennith the mennith","picks":["Scottie Scheffler","Tommy Fleetwood","Daniel Berger","Daniel Hillier"]},{"name":"NG3","picks":["Cameron Young","Collin Morikawa","Kristoffer Reitan","Billy Horschel"]},{"name":"NG4","picks":["Scottie Scheffler","Sam Burns","Aaron Rai","Jhonattan Vegas"]},{"name":"Nick Adamsons","picks":["Cameron Young","Rickie Fowler","Sungjae Im","Nico Echavarria"]},{"name":"Nick Brown","picks":["Cameron Young","Sam Burns","Wyndham Clark","Billy Horschel"]},{"name":"Nick Popelier","picks":["Cameron Young","Rickie Fowler","Keegan Bradley","Andrew Putnam"]},{"name":"Nick Spencer","picks":["Xander Schauffele","Sam Burns","Sahith Theegala","Rasmus Neergaard-Petersen"]},{"name":"Nick Sprowls 1","picks":["Scottie Scheffler","Si Woo Kim","Max Homa","Rasmus Neergaard-Petersen"]},{"name":"Nick Sprowls 2","picks":["Cameron Young","Si Woo Kim","Alex Fitzpatrick","Aldrich Potgieter"]},{"name":"Nick Sprowls 3","picks":["Rory McIlroy","Chris Gotterup","Corey Conners","Nico Echavarria"]},{"name":"Nick Sprowls 4","picks":["Scottie Scheffler","Collin Morikawa","Jacob Bridgeman","Max McGreevy"]},{"name":"Nick Sprowls 5","picks":["Cameron Young","Rickie Fowler","Keegan Bradley","Billy Horschel"]},{"name":"NickKlop1","picks":["Cameron Young","Brooks Koepka","Max Homa","Rasmus Neergaard-Petersen"]},{"name":"NickKlop2","picks":["Scottie Scheffler","Brooks Koepka","Max Homa","Andrew Novak"]},{"name":"Nicklaus Boyd","picks":["Scottie Scheffler","Tommy Fleetwood","Daniel Berger","Andrew Novak"]},{"name":"Nico","picks":["Cameron Young","Rickie Fowler","Alex Fitzpatrick","Stewart Cink"]},{"name":"Nolan Murphy","picks":["Scottie Scheffler","Si Woo Kim","Sungjae Im","Andrew Novak"]},{"name":"Nolan Murphy1","picks":["Xander Schauffele","Tommy Fleetwood","Corey Conners","Aldrich Potgieter"]},{"name":"Nolan Murphy2","picks":["Matt Fitzpatrick","Viktor Hovland","Sahith Theegala","Andrew Novak"]},{"name":"nskoro1","picks":["Jon Rahm","Jordan Spieth","Nick Taylor","Andrew Putnam"]},{"name":"nskoro2","picks":["Jon Rahm","J.J. Spaun","Alex Fitzpatrick","Andrew Novak"]},{"name":"nskoro3","picks":["Cameron Young","Jordan Spieth","Thomas Detry","Daniel Hillier"]},{"name":"nskoro4","picks":["Rory McIlroy","Jordan Spieth","Alex Smalley","Nico Echavarria"]},{"name":"O Starks","picks":["Rory McIlroy","Si Woo Kim","Sahith Theegala","Andrew Putnam"]},{"name":"Olive Carnahan","picks":["Scottie Scheffler","Jordan Spieth","Sungjae Im","Aldrich Potgieter"]},{"name":"On The Back Nine","picks":["Scottie Scheffler","Gary Woodland","Alex Fitzpatrick","Brandt Snedeker"]},{"name":"On The Back Nine #2","picks":["Cameron Young","Tommy Fleetwood","Alex Fitzpatrick","Jhonattan Vegas"]},{"name":"Oregon Ivan","picks":["Scottie Scheffler","Tommy Fleetwood","Sungjae Im","Padraig Harrington"]},{"name":"Pagett, Jamie","picks":["Scottie Scheffler","Tommy Fleetwood","Keegan Bradley","Stewart Cink"]},{"name":"Pagett, Kelly","picks":["Bryson DeChambeau","Brooks Koepka","Dustin Johnson","Rasmus Neergaard-Petersen"]},{"name":"Pagett, Kreider","picks":["Ludvig Aberg","Nicolai Hojgaard","Michael Thorbjornsen","Rasmus Neergaard-Petersen"]},{"name":"Pagett, Rebel","picks":["Jon Rahm","Collin Morikawa","Sahith Theegala","Jason Dufner"]},{"name":"Paresh 1","picks":["Rory McIlroy","Nicolai Hojgaard","Alex Fitzpatrick","Andrew Novak"]},{"name":"Paresh 2","picks":["Scottie Scheffler","Robert MacIntyre","Kristoffer Reitan","Sami Valimaki"]},{"name":"Paresh 3","picks":["Cameron Young","Russell Henley","Marco Penge","David Lipsky"]},{"name":"Paresh4","picks":["Bryson DeChambeau","Adam Scott","Sungjae Im","Matti Schmid"]},{"name":"Parker North","picks":["Xander Schauffele","Collin Morikawa","Christiaan Bezuidenhout","Emiliano Grillo"]},{"name":"Patrick A.","picks":["Rory McIlroy","Justin Thomas","Brian Harman","Y.E. Yang"]},{"name":"PatrickCantplay","picks":["Rory McIlroy","Sepp Straka","Keegan Bradley","Rasmus Neergaard-Petersen"]},{"name":"patth1","picks":["Scottie Scheffler","Rickie Fowler","Alex Fitzpatrick","Chris Kirk"]},{"name":"patth2","picks":["Bryson DeChambeau","Gary Woodland","Kristoffer Reitan","Rasmus Neergaard-Petersen"]},{"name":"PattyMack A","picks":["Xander Schauffele","Patrick Cantlay","Corey Conners","Lucas Glover"]},{"name":"PattyMack B","picks":["Scottie Scheffler","Collin Morikawa","Sungjae Im","Andrew Novak"]},{"name":"Paul Boggini","picks":["Cameron Young","Tommy Fleetwood","Matt McCarty","Nico Echavarria"]},{"name":"Paul G","picks":["Scottie Scheffler","Collin Morikawa","Corey Conners","Billy Horschel"]},{"name":"PAUL HARNEY","picks":["Matt Fitzpatrick","Patrick Cantlay","Sungjae Im","Aldrich Potgieter"]},{"name":"Paul Newell","picks":["Cameron Young","Tommy Fleetwood","Aaron Rai","Patrick Rodgers"]},{"name":"Paul Sondreaal","picks":["Scottie Scheffler","Patrick Cantlay","Kristoffer Reitan","Andrew Putnam"]},{"name":"Pedro Martinez","picks":["Rory McIlroy","Justin Rose","Nick Taylor","Steven Fisk"]},{"name":"Pete Mingham","picks":["Cameron Young","Tommy Fleetwood","Max Homa","Sudarshan Yellamaraju"]},{"name":"Peter Duenas","picks":["Ludvig Aberg","Nicolai Hojgaard","Jacob Bridgeman","Austin Smotherman"]},{"name":"Phil Geremia","picks":["Scottie Scheffler","Tyrrell Hatton","Harry Hall","Austin Smotherman"]},{"name":"Phillip Sherman","picks":["Scottie Scheffler","Justin Rose","Corey Conners","Lucas Glover"]},{"name":"Philly Cheesesteaks Are Overrated","picks":["Bryson DeChambeau","Collin Morikawa","Brian Harman","Ben Kern"]},{"name":"Piccolo Orso","picks":["Cameron Young","Brooks Koepka","Nick Taylor","Andrew Novak"]},{"name":"Ramen","picks":["Jon Rahm","Justin Rose","Sungjae Im","Andrew Novak"]},{"name":"Rava 1","picks":["Scottie Scheffler","Sam Burns","Alex Fitzpatrick","Aldrich Potgieter"]},{"name":"Rava 2","picks":["Scottie Scheffler","Jordan Spieth","Aaron Rai","John Parry"]},{"name":"Ray Eggink","picks":["Rory McIlroy","Brooks Koepka","Rasmus Hojgaard","Stewart Cink"]},{"name":"Redd-1","picks":["Scottie Scheffler","Russell Henley","Ryo Hisatsune","Patrick Rodgers"]},{"name":"Redd-2","picks":["Cameron Young","Sepp Straka","Ricky Castillo","Chris Kirk"]},{"name":"Reid Thompson","picks":["Scottie Scheffler","Tyrrell Hatton","Michael Thorbjornsen","Stewart Cink"]},{"name":"Reigel 12345","picks":["Scottie Scheffler","Tommy Fleetwood","Jacob Bridgeman","Aldrich Potgieter"]},{"name":"Rich Austin","picks":["Scottie Scheffler","Collin Morikawa","Max Homa","William Mouw"]},{"name":"Rich Austin Nolan","picks":["Scottie Scheffler","Tommy Fleetwood","Wyndham Clark","William Mouw"]},{"name":"Rich Stephens","picks":["Scottie Scheffler","Gary Woodland","Alex Fitzpatrick","Stewart Cink"]},{"name":"RichersAbsenteeGodfather","picks":["Ludvig Aberg","Collin Morikawa","Sungjae Im","Patrick Rodgers"]},{"name":"Ricky Hanna 1","picks":["Cameron Young","Patrick Cantlay","Nick Taylor","Patrick Rodgers"]},{"name":"Ricky Hanna 2","picks":["Matt Fitzpatrick","Tommy Fleetwood","Denny McCarthy","Chandler Blanchet"]},{"name":"Riley Leonard","picks":["Scottie Scheffler","Nicolai Hojgaard","Harry Hall","Sudarshan Yellamaraju"]},{"name":"Rob Dong 1","picks":["Scottie Scheffler","Tyrrell Hatton","Keegan Bradley","Andrew Novak"]},{"name":"Rob Dong 2","picks":["Cameron Young","Tommy Fleetwood","Sungjae Im","William Mouw"]},{"name":"Rob Finn","picks":["Scottie Scheffler","Collin Morikawa","Kristoffer Reitan","Billy Horschel"]},{"name":"Rob King","picks":["Scottie Scheffler","Harris English","Corey Conners","Jason Dufner"]},{"name":"Robert bem #01","picks":["Scottie Scheffler","Russell Henley","Ryan Gerard","Brian Campbell"]},{"name":"Robert bem #02","picks":["Rory McIlroy","Russell Henley","Keegan Bradley","Davis Riley"]},{"name":"Robert King","picks":["Cameron Young","Tommy Fleetwood","Alex Noren","Brandt Snedeker"]},{"name":"robpreddy","picks":["Matt Fitzpatrick","Patrick Reed","Thomas Detry","Sudarshan Yellamaraju"]},{"name":"Roby Wan Jenn Obi","picks":["Rory McIlroy","Rickie Fowler","Keegan Bradley","Mikael Lindberg"]},{"name":"ROBYN CURTIS","picks":["Rory McIlroy","Tommy Fleetwood","Max Greyserman","Jhonattan Vegas"]},{"name":"RobyWon","picks":["Scottie Scheffler","Brooks Koepka","Jacob Bridgeman","Austin Smotherman"]},{"name":"rocky granucci","picks":["Scottie Scheffler","Gary Woodland","Denny McCarthy","Nico Echavarria"]},{"name":"Roger chuurch","picks":["Scottie Scheffler","Ben Griffin","Keegan Bradley","Stewart Cink"]},{"name":"Roger Z.","picks":["Cameron Young","Justin Rose","Keith Mitchell","Lucas Glover"]},{"name":"Ron Moore","picks":["Scottie Scheffler","Viktor Hovland","Aaron Rai","Billy Horschel"]},{"name":"Ron Rodriguez","picks":["Cameron Young","Patrick Reed","Michael Thorbjornsen","Rasmus Neergaard-Petersen"]},{"name":"Ross McFlurry","picks":["Bryson DeChambeau","Justin Rose","Cameron Smith","Austin Smotherman"]},{"name":"Ross McFlurry 2","picks":["Bryson DeChambeau","Patrick Reed","Wyndham Clark","Casey Jarvis"]},{"name":"Ross McFlurry 3","picks":["Scottie Scheffler","Adam Scott","Jacob Bridgeman","Ben Kern"]},{"name":"Ross McFlurry 4","picks":["Scottie Scheffler","Robert MacIntyre","Thomas Detry","Lucas Glover"]},{"name":"Ross McFlurry 5","picks":["Cameron Young","Sam Burns","Wyndham Clark","Patrick Rodgers"]},{"name":"Ross McFlurry 6","picks":["Cameron Young","Brooks Koepka","Cameron Smith","Austin Smotherman"]},{"name":"Rossy Balboa","picks":["Scottie Scheffler","Jordan Spieth","Sahith Theegala","Billy Horschel"]},{"name":"Roylee Luna","picks":["Scottie Scheffler","J.J. Spaun","Keegan Bradley","Nico Echavarria"]},{"name":"RRIEGS","picks":["Scottie Scheffler","J.J. Spaun","Alex Smalley","Sudarshan Yellamaraju"]},{"name":"RRIEGS2","picks":["Cameron Young","Adam Scott","Alex Fitzpatrick","Austin Smotherman"]},{"name":"RRIEGS3","picks":["Rory McIlroy","Brooks Koepka","Matt McCarty","Andrew Putnam"]},{"name":"RRIEGS4","picks":["Scottie Scheffler","Kurt Kitayama","Kristoffer Reitan","Sudarshan Yellamaraju"]},{"name":"RRIEGS5","picks":["Bryson DeChambeau","Justin Thomas","Matt McCarty","Austin Smotherman"]},{"name":"RRIEGS6","picks":["Rory McIlroy","Collin Morikawa","Jacob Bridgeman","Andrew Putnam"]},{"name":"RS1","picks":["Scottie Scheffler","Tommy Fleetwood","Jacob Bridgeman","Patrick Rodgers"]},{"name":"RS2","picks":["Scottie Scheffler","Tyrrell Hatton","Matt McCarty","Andrew Putnam"]},{"name":"Rudy Sanchez","picks":["Cameron Young","Tommy Fleetwood","Alex Fitzpatrick","Max McGreevy"]},{"name":"Ryan DuChene","picks":["Scottie Scheffler","Tommy Fleetwood","Keegan Bradley","Andrew Novak"]},{"name":"Ryan Goodwin","picks":["Scottie Scheffler","Tommy Fleetwood","Sungjae Im","Brandt Snedeker"]},{"name":"Ryan Hoogendyk","picks":["Cameron Young","Gary Woodland","Sahith Theegala","Aldrich Potgieter"]},{"name":"Ryan Humphrey","picks":["Cameron Young","Justin Rose","Corey Conners","Braden Shattuck"]},{"name":"Rylan Carnahan","picks":["Ludvig Aberg","Collin Morikawa","Alex Fitzpatrick","Matti Schmid"]},{"name":"S.Phenix","picks":["Cameron Young","Rickie Fowler","Wyndham Clark","Rasmus Neergaard-Petersen"]},{"name":"Sam Ehrlich","picks":["Ludvig Aberg","J.J. Spaun","Sungjae Im","Aldrich Potgieter"]},{"name":"Sam Ehrlich 2","picks":["Scottie Scheffler","Patrick Cantlay","Sahith Theegala","Patrick Rodgers"]},{"name":"Schwartz1","picks":["Scottie Scheffler","Russell Henley","Alex Fitzpatrick","Andrew Novak"]},{"name":"Schwartz2","picks":["Rory McIlroy","Tommy Fleetwood","Sungjae Im","Billy Horschel"]},{"name":"Schwartz3","picks":["Cameron Young","Adam Scott","Keegan Bradley","Nico Echavarria"]},{"name":"Scott Kiernan","picks":["Rory McIlroy","Collin Morikawa","Jacob Bridgeman","Brandt Snedeker"]},{"name":"Scott Menaker","picks":["Scottie Scheffler","Tommy Fleetwood","Daniel Berger","Davis Riley"]},{"name":"Scott Menaker2","picks":["Rory McIlroy","Rickie Fowler","Keegan Bradley","Lucas Glover"]},{"name":"Scott Perkins","picks":["Matt Fitzpatrick","Rickie Fowler","Sahith Theegala","Brandt Snedeker"]},{"name":"SCOTTY'S A-Team","picks":["Scottie Scheffler","Tommy Fleetwood","Keegan Bradley","Andrew Novak"]},{"name":"SCOTTY'S B-team","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Fitzpatrick","Lucas Glover"]},{"name":"SCOTTY'S C-Team","picks":["Scottie Scheffler","Patrick Cantlay","Keegan Bradley","Andrew Novak"]},{"name":"SCOTTY'S D-team","picks":["Scottie Scheffler","Patrick Cantlay","Alex Fitzpatrick","Lucas Glover"]},{"name":"Sean G AI","picks":["Xander Schauffele","Tommy Fleetwood","Aaron Rai","Andrew Novak"]},{"name":"Sean G Natural","picks":["Rory McIlroy","Justin Rose","Keegan Bradley","Billy Horschel"]},{"name":"Seingpole3","picks":["Cameron Young","Si Woo Kim","Alex Fitzpatrick","Billy Horschel"]},{"name":"Seminoles #1","picks":["Ludvig Aberg","Collin Morikawa","Daniel Berger","Andrew Putnam"]},{"name":"Shannon Fernandez","picks":["Bryson DeChambeau","Rickie Fowler","Sungjae Im","Lucas Glover"]},{"name":"Sharen Kading","picks":["Cameron Young","Chris Gotterup","Kristoffer Reitan","Tom Hoge"]},{"name":"Sidney and Coopers Picks- also Kendall","picks":["Rory McIlroy","Justin Rose","Jacob Bridgeman","Billy Horschel"]},{"name":"Sinko","picks":["Scottie Scheffler","Justin Rose","Alex Fitzpatrick","John Keefer"]},{"name":"Sir Shanksalot","picks":["Scottie Scheffler","Brooks Koepka","Alex Fitzpatrick","Andrew Novak"]},{"name":"Sir Shanksalot Jr.","picks":["Cameron Young","Brooks Koepka","Alex Fitzpatrick","Andrew Novak"]},{"name":"Skeoch1","picks":["Cameron Young","Justin Rose","Kristoffer Reitan","Nico Echavarria"]},{"name":"Skeoch2","picks":["Cameron Young","Si Woo Kim","Alex Fitzpatrick","Austin Smotherman"]},{"name":"Skeoch3","picks":["Cameron Young","Maverick McNealy","Kristoffer Reitan","Sudarshan Yellamaraju"]},{"name":"Skeoch4","picks":["Scottie Scheffler","Si Woo Kim","Matt McCarty","Sudarshan Yellamaraju"]},{"name":"Slanglois","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Fitzpatrick","Billy Horschel"]},{"name":"Slanglois2","picks":["Rory McIlroy","Justin Thomas","Corey Conners","Lucas Glover"]},{"name":"Slanglois3","picks":["Bryson DeChambeau","Joaquin Niemann","Wyndham Clark","Davis Riley"]},{"name":"SofieB","picks":["Xander Schauffele","Si Woo Kim","Corey Conners","Chris Kirk"]},{"name":"Soxbuds","picks":["Ludvig Aberg","Tommy Fleetwood","Kristoffer Reitan","Andrew Novak"]},{"name":"Stacey Granucci","picks":["Bryson DeChambeau","Collin Morikawa","Corey Conners","Ian Holt"]},{"name":"Statman1","picks":["Cameron Young","Tyrrell Hatton","Keegan Bradley","Rasmus Neergaard-Petersen"]},{"name":"Statman2","picks":["Xander Schauffele","Harris English","Jacob Bridgeman","Billy Horschel"]},{"name":"Stephen Keefe","picks":["Cameron Young","Sam Burns","Corey Conners","Max McGreevy"]},{"name":"Steve Barnett","picks":["Cameron Young","Si Woo Kim","Alex Fitzpatrick","Patrick Rodgers"]},{"name":"Steve H","picks":["Rory McIlroy","Tommy Fleetwood","Cameron Smith","Billy Horschel"]},{"name":"Steve Ogden","picks":["Rory McIlroy","Tommy Fleetwood","Keegan Bradley","Andrew Putnam"]},{"name":"Steve Shields","picks":["Xander Schauffele","Jordan Spieth","Brian Harman","Chris Kirk"]},{"name":"SteveCotta1","picks":["Cameron Young","Tommy Fleetwood","Kristoffer Reitan","Austin Smotherman"]},{"name":"SteveCotta2","picks":["Scottie Scheffler","Hideki Matsuyama","Jacob Bridgeman","Max McGreevy"]},{"name":"SteveCotta3","picks":["Matt Fitzpatrick","Rickie Fowler","Sahith Theegala","Nico Echavarria"]},{"name":"SteveCotta4","picks":["Rory McIlroy","Tommy Fleetwood","Kristoffer Reitan","Chris Kirk"]},{"name":"SteveCotta5","picks":["Cameron Young","Si Woo Kim","Alex Fitzpatrick","Austin Smotherman"]},{"name":"Steven Hennessy","picks":["Bryson DeChambeau","Rickie Fowler","Max Greyserman","Chris Kirk"]},{"name":"Stu's Picks","picks":["Cameron Young","Tommy Fleetwood","Jacob Bridgeman","Kota Kaneko"]},{"name":"STUEY1","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Fitzpatrick","David Lipsky"]},{"name":"STUEY2","picks":["Cameron Young","Brooks Koepka","Marco Penge","Billy Horschel"]},{"name":"STUEY3","picks":["Rory McIlroy","Shane Lowry","Keegan Bradley","Andrew Novak"]},{"name":"STUEY4","picks":["Matt Fitzpatrick","Justin Rose","Alex Fitzpatrick","Chris Kirk"]},{"name":"SUGAR SHANE #1","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Fitzpatrick","Billy Horschel"]},{"name":"SUGAR SHANE #2","picks":["Rory McIlroy","Brooks Koepka","Keegan Bradley","Lucas Glover"]},{"name":"SUGAR SHANE #3","picks":["Scottie Scheffler","Justin Rose","Kristoffer Reitan","Rasmus Neergaard-Petersen"]},{"name":"SUGAR SHANE #4","picks":["Xander Schauffele","Tyrrell Hatton","Alex Fitzpatrick","Billy Horschel"]},{"name":"Sully 1","picks":["Ludvig Aberg","Collin Morikawa","Nick Taylor","Andrew Novak"]},{"name":"Sully 2","picks":["Ludvig Aberg","Brooks Koepka","Alex Smalley","Casey Jarvis"]},{"name":"Sully 3","picks":["Ludvig Aberg","Tommy Fleetwood","Harry Hall","Daniel Hillier"]},{"name":"Sully 4","picks":["Jon Rahm","Brooks Koepka","Matt McCarty","Casey Jarvis"]},{"name":"Swingpole1","picks":["Scottie Scheffler","Tommy Fleetwood","Keegan Bradley","Andrew Novak"]},{"name":"Swingpole2","picks":["Rory McIlroy","Justin Rose","Michael Thorbjornsen","Rasmus Neergaard-Petersen"]},{"name":"Swingpole4","picks":["Matt Fitzpatrick","Tommy Fleetwood","Keegan Bradley","Steven Fisk"]},{"name":"Swingpole5","picks":["Scottie Scheffler","Collin Morikawa","Sungjae Im","Aldrich Potgieter"]},{"name":"Taco Starks","picks":["Bryson DeChambeau","Viktor Hovland","Max Homa","Andrew Putnam"]},{"name":"Tad Reddig 1","picks":["Scottie Scheffler","Brooks Koepka","Dustin Johnson","Michael Block"]},{"name":"Tad Reddig 2","picks":["Cameron Young","Tommy Fleetwood","Keegan Bradley","Lucas Glover"]},{"name":"tboyd2424","picks":["Cameron Young","Jordan Spieth","Matt McCarty","Aldrich Potgieter"]},{"name":"Team Bollemus","picks":["Rory McIlroy","Viktor Hovland","Kristoffer Reitan","Billy Horschel"]},{"name":"Ted","picks":["Scottie Scheffler","Patrick Reed","Wyndham Clark","Austin Smotherman"]},{"name":"Terri Norwood","picks":["Scottie Scheffler","Rickie Fowler","Kristoffer Reitan","David Lipsky"]},{"name":"TERRY TIME 1","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Fitzpatrick","Patrick Rodgers"]},{"name":"TERRY TIME 2","picks":["Matt Fitzpatrick","Brooks Koepka","Keegan Bradley","Andrew Novak"]},{"name":"The Fish","picks":["Scottie Scheffler","Viktor Hovland","Sungjae Im","Max McGreevy"]},{"name":"Thomas Freeman","picks":["Scottie Scheffler","Jordan Spieth","Max Homa","Billy Horschel"]},{"name":"Tim Kunz_1","picks":["Cameron Young","Brooks Koepka","Alex Fitzpatrick","Rasmus Neergaard-Petersen"]},{"name":"Tim kunz_2","picks":["Scottie Scheffler","Jordan Spieth","Kristoffer Reitan","Aldrich Potgieter"]},{"name":"Tim O‚ÄôDaniel","picks":["Scottie Scheffler","Brooks Koepka","Max Homa","Rasmus Neergaard-Petersen"]},{"name":"Tim Olson","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Smalley","Patrick Rodgers"]},{"name":"Tim Stenvick","picks":["Scottie Scheffler","Tommy Fleetwood","Sahith Theegala","Stewart Cink"]},{"name":"TN 1","picks":["Cameron Young","Tommy Fleetwood","Sahith Theegala","Davis Riley"]},{"name":"Tobin Whitman","picks":["Scottie Scheffler","Collin Morikawa","Sungjae Im","Sudarshan Yellamaraju"]},{"name":"Tommy Chuckel","picks":["Scottie Scheffler","Joaquin Niemann","Nick Taylor","Patrick Rodgers"]},{"name":"Tony Clark","picks":["Xander Schauffele","Viktor Hovland","Corey Conners","Patrick Rodgers"]},{"name":"Tony McGee 1","picks":["Scottie Scheffler","Tommy Fleetwood","Keegan Bradley","Rasmus Neergaard-Petersen"]},{"name":"Tony McGee 2","picks":["Ludvig Aberg","Collin Morikawa","Kristoffer Reitan","Andrew Novak"]},{"name":"TONYschroe","picks":["Xander Schauffele","Nicolai Hojgaard","Jacob Bridgeman","Austin Smotherman"]},{"name":"Trenton Marsh#1","picks":["Ludvig Aberg","J.J. Spaun","Harry Hall","Sudarshan Yellamaraju"]},{"name":"Trenton Marsh#2","picks":["Scottie Scheffler","Justin Thomas","Sungjae Im","Emiliano Grillo"]},{"name":"Trenton Marsh#3","picks":["Cameron Young","Tommy Fleetwood","Kristoffer Reitan","Andrew Novak"]},{"name":"Trenton Marsh#4","picks":["Scottie Scheffler","Collin Morikawa","Harry Hall","Sudarshan Yellamaraju"]},{"name":"Trenton Marsh#5","picks":["Rory McIlroy","Russell Henley","Corey Conners","Lucas Glover"]},{"name":"Trenton Marsh#6","picks":["Ludvig Aberg","Tommy Fleetwood","Sungjae Im","David Lipsky"]},{"name":"Trombley","picks":["Xander Schauffele","Collin Morikawa","Alex Fitzpatrick","Aldrich Potgieter"]},{"name":"TROY ERICKSON","picks":["Cameron Young","Tommy Fleetwood","Max Homa","Billy Horschel"]},{"name":"TROY ERICKSON2","picks":["Matt Fitzpatrick","Justin Rose","Brian Harman","Lucas Glover"]},{"name":"Troy Rowsey","picks":["Jon Rahm","Justin Thomas","Jordan Smith","Casey Jarvis"]},{"name":"Tstone1","picks":["Cameron Young","J.J. Spaun","Jacob Bridgeman","Rasmus Neergaard-Petersen"]},{"name":"Tstone2","picks":["Rory McIlroy","Tommy Fleetwood","Alex Smalley","Rasmus Neergaard-Petersen"]},{"name":"TStone3","picks":["Ludvig Aberg","Rickie Fowler","Aaron Rai","Patrick Rodgers"]},{"name":"TStone4","picks":["Scottie Scheffler","Adam Scott","Harry Hall","Sudarshan Yellamaraju"]},{"name":"Tyler Flajole","picks":["Jon Rahm","Tyrrell Hatton","Dustin Johnson","Billy Horschel"]},{"name":"Tyler McKinney","picks":["Scottie Scheffler","Rickie Fowler","Corey Conners","Billy Horschel"]},{"name":"Tyler Monson","picks":["Scottie Scheffler","Tommy Fleetwood","Keegan Bradley","Stewart Cink"]},{"name":"Tyler Monson 2","picks":["Cameron Young","Collin Morikawa","Sungjae Im","Andrew Putnam"]},{"name":"Tyler Morita","picks":["Cameron Young","Sam Burns","Jacob Bridgeman","Michael Block"]},{"name":"Tyler Papworth","picks":["Cameron Young","Kurt Kitayama","Wyndham Clark","Stewart Cink"]},{"name":"Tyler Rico","picks":["Scottie Scheffler","Tommy Fleetwood","Alex Fitzpatrick","Aldrich Potgieter"]},{"name":"Tyler Williams","picks":["Xander Schauffele","Russell Henley","Corey Conners","Andrew Novak"]},{"name":"Tyler Ziegler 1","picks":["Scottie Scheffler","Collin Morikawa","Corey Conners","Lucas Glover"]},{"name":"Tyler Ziegler 2","picks":["Cameron Young","Tommy Fleetwood","Aaron Rai","Lucas Glover"]},{"name":"Tyler Ziegler 3","picks":["Xander Schauffele","Russell Henley","Corey Conners","Lucas Glover"]},{"name":"Tyler Ziegler 4","picks":["Cameron Young","Rickie Fowler","Thomas Detry","Sudarshan Yellamaraju"]},{"name":"TylerC","picks":["Xander Schauffele","Si Woo Kim","Rasmus Hojgaard","Sudarshan Yellamaraju"]},{"name":"Tyson Vallenari","picks":["Scottie Scheffler","Chris Gotterup","Kristoffer Reitan","Aldrich Potgieter"]},{"name":"Undue Purversity","picks":["Scottie Scheffler","Patrick Reed","Keegan Bradley","Austin Smotherman"]},{"name":"unRuly Cajun ****","picks":["Xander Schauffele","Rickie Fowler","Sahith Theegala","Rasmus Neergaard-Petersen"]},{"name":"Vaya Con Dios 1","picks":["Scottie Scheffler","Justin Rose","Jacob Bridgeman","Patrick Rodgers"]},{"name":"Vaya Con Dios 2","picks":["Cameron Young","Min Woo Lee","Jacob Bridgeman","Brandt Snedeker"]},{"name":"Vinnie Nevarez","picks":["Cameron Young","Tommy Fleetwood","Kristoffer Reitan","Lucas Glover"]},{"name":"viracola","picks":["Cameron Young","Tyrrell Hatton","Max Homa","Adam Schenk"]},{"name":"viracola 2","picks":["Rory McIlroy","Chris Gotterup","Wyndham Clark","Martin Kaymer"]},{"name":"Vliet 1","picks":["Scottie Scheffler","Brooks Koepka","J.T. Poston","Emiliano Grillo"]},{"name":"Vliet 2","picks":["Rory McIlroy","Patrick Reed","Sungjae Im","Billy Horschel"]},{"name":"VrabelsSidePiece","picks":["Scottie Scheffler","Nicolai Hojgaard","Corey Conners","Nico Echavarria"]},{"name":"Warner 1","picks":["Scottie Scheffler","Brooks Koepka","Max Homa","Aldrich Potgieter"]},{"name":"Watson T","picks":["Cameron Young","Tommy Fleetwood","Wyndham Clark","Max McGreevy"]},{"name":"Watt Lasater","picks":["Scottie Scheffler","Collin Morikawa","Corey Conners","Lucas Glover"]},{"name":"wbrinky","picks":["Scottie Scheffler","Chris Gotterup","Sahith Theegala","Sudarshan Yellamaraju"]},{"name":"Werder","picks":["Scottie Scheffler","Rickie Fowler","Daniel Berger","Andrew Novak"]},{"name":"Whitney Ellis","picks":["Ludvig Aberg","Viktor Hovland","Rasmus Hojgaard","Rasmus Neergaard-Petersen"]},{"name":"Wilki Weekend Warriors","picks":["Matt Fitzpatrick","Chris Gotterup","Matt McCarty","Andrew Novak"]},{"name":"Will Cook","picks":["Scottie Scheffler","Collin Morikawa","Alex Fitzpatrick","Kota Kaneko"]},{"name":"Will Perry","picks":["Scottie Scheffler","Collin Morikawa","Keegan Bradley","Patrick Rodgers"]},{"name":"Winks","picks":["Scottie Scheffler","Brooks Koepka","Keegan Bradley","Sudarshan Yellamaraju"]},{"name":"Winks1","picks":["Bryson DeChambeau","Jordan Spieth","Wyndham Clark","Sudarshan Yellamaraju"]},{"name":"Winks2","picks":["Xander Schauffele","Si Woo Kim","Alex Noren","Sudarshan Yellamaraju"]},{"name":"wolfy1","picks":["Scottie Scheffler","Russell Henley","Corey Conners","Billy Horschel"]},{"name":"wolfy2","picks":["Rory McIlroy","Jordan Spieth","Sahith Theegala","Andrew Novak"]},{"name":"wolfy3","picks":["Cameron Young","Jason Day","Corey Conners","Lucas Glover"]},{"name":"wolfy4","picks":["Scottie Scheffler","Hideki Matsuyama","Sahith Theegala","Billy Horschel"]},{"name":"Woody T","picks":["Scottie Scheffler","Collin Morikawa","Alex Fitzpatrick","Aldrich Potgieter"]},{"name":"X","picks":["Scottie Scheffler","Justin Rose","Keegan Bradley","Sudarshan Yellamaraju"]},{"name":"Zach Carvalho","picks":["Cameron Young","Chris Gotterup","Jacob Bridgeman","Stewart Cink"]},{"name":"Zach Couch","picks":["Rory McIlroy","Tommy Fleetwood","Max Homa","Andrew Novak"]},{"name":"Zach Schmidt","picks":["Ludvig Aberg","Viktor Hovland","Sungjae Im","Aldrich Potgieter"]},{"name":"Zack Atack","picks":["Ludvig Aberg","Tommy Fleetwood","Sahith Theegala","Billy Horschel"]},{"name":"Zbets12","picks":["Scottie Scheffler","Collin Morikawa","Aaron Rai","Andrew Putnam"]},{"name":"Ziggy 2","picks":["Cameron Young","Justin Rose","Keegan Bradley","Emiliano Grillo"]},{"name":"Ziggy 3","picks":["Xander Schauffele","Rickie Fowler","Rasmus Hojgaard","Patrick Rodgers"]},{"name":"Ziggy1","picks":["Rory McIlroy","Collin Morikawa","Haotong Li","Stewart Cink"]},{"name":"ZJA22","picks":["Matt Fitzpatrick","Robert MacIntyre","Matt McCarty","Mikael Lindberg"]},{"name":"Zmoney.com","picks":["Scottie Scheffler","Si Woo Kim","Jacob Bridgeman","Andrew Novak"]},{"name":"zoey granucci","picks":["Bryson DeChambeau","Tyrrell Hatton","Sahith Theegala","Andrew Novak"]}];
+  const SEARCH_KEY = 'tournamentLeaderboard:findPlayer';
+  const FAVORITES_KEY = 'tournamentLeaderboard:favorites';
 
   let tournament = null;
-  let competitorsByName = new Map();
-  let tournamentRound = null; // current round number from ESPN event status
+  let competitors = [];
   let lastFetch = null;
-  let openParticipants = new Set();
-  let favorites = new Set();
   let searchQuery = '';
   let initialFilterApplied = false;
+  let favorites = new Set();
 
   function normalizeName(s) {
-    let n = String(s || '')
+    return String(s || '')
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
@@ -543,8 +368,6 @@
       .replace(/[.']/g, '')
       .replace(/\s+/g, ' ')
       .trim();
-    if (ALIASES[n]) n = ALIASES[n];
-    return n;
   }
 
   function fmtScore(toPar) {
@@ -561,6 +384,7 @@
   function todayClass(d) {
     if (!d) return '';
     if (d === 'E' || d === '0') return 's-even';
+    if (typeof d !== 'string') return '';
     if (d.startsWith('-')) return 's-under';
     if (d.startsWith('+')) return 's-over';
     return '';
@@ -591,14 +415,6 @@
       ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
-  function parseDisplayValue(dv) {
-    if (!dv) return null;
-    if (dv === 'E') return 0;
-    if (dv === '-') return null;
-    const m = String(dv).match(/^([+-]?)(\d+)$/);
-    return m ? (m[1] === '-' ? -1 : 1) * parseInt(m[2], 10) : null;
-  }
-
   async function fetchScoreboard() {
     setSpinning(true);
     try {
@@ -621,7 +437,7 @@
 
   function processData(json) {
     const event = json.events && json.events[0];
-    if (!event) { tournament = null; competitorsByName = new Map(); return; }
+    if (!event) { tournament = null; competitors = []; return; }
     tournament = {
       id: event.id,
       name: event.name,
@@ -630,7 +446,7 @@
     const comp = (event.competitions || [])[0];
     const raw = (comp && comp.competitors) || [];
     // Tournament's currently-active round (1-4). Used to determine "today" data for each player.
-    tournamentRound = (event.status && event.status.period) ||
+    const tournamentRound = (event.status && event.status.period) ||
                             (comp && comp.status && comp.status.period) || null;
 
     // Determine whether the 36-hole cut has been applied. ESPN exposes no status field
@@ -643,7 +459,7 @@
     });
     const cutHasHappened = withR3 > 0 && withR3 < raw.length;
 
-    const byName = new Map();
+    const list = [];
     raw.forEach(c => {
       const athlete = c.athlete || {};
       const scoreStr = (c.score || '').toString();
@@ -655,23 +471,16 @@
       const isOut = isCut || isWD || isDQ;
 
       let toPar = null;
-      if (!isOut) {
-        if (scoreStr === 'E' || scoreStr === '') toPar = 0;
-        else {
-          const m = scoreStr.match(/^([+-]?)(\d+)$/);
-          if (m) toPar = (m[1] === '-' ? -1 : 1) * parseInt(m[2], 10);
-        }
-      } else {
-        if (scoreStr === 'E' || scoreStr === '') toPar = 0;
-        else {
-          const m = scoreStr.match(/^([+-]?)(\d+)$/);
-          toPar = m ? (m[1] === '-' ? -1 : 1) * parseInt(m[2], 10) : 0;
-        }
+      if (scoreStr === 'E' || scoreStr === '') toPar = 0;
+      else {
+        const m = scoreStr.match(/^([+-]?)(\d+)$/);
+        if (m) toPar = (m[1] === '-' ? -1 : 1) * parseInt(m[2], 10);
+        else if (isOut) toPar = 0;
       }
 
       const lines = Array.isArray(c.linescores) ? c.linescores : [];
       const rounds = [];
-      for (let r = 1; r <= TOTAL_ROUNDS; r++) {
+      for (let r = 1; r <= 4; r++) {
         const ln = lines.find(x => x && x.period === r);
         if (ln && ln.linescores && ln.linescores.length) {
           rounds.push({
@@ -683,18 +492,19 @@
           rounds.push({ strokes: 0, holesPlayed: 0, displayValue: null });
         }
       }
-      const completedRounds = rounds.filter(r => r.holesPlayed === 18).length;
+      const hasStarted = rounds.some(r => r.holesPlayed > 0);
 
       let thru = null, teeTime = null, todayScore = null;
       // Use the tournament's current round to determine "today" data.
-      // This correctly handles players who finished a round but haven't teed off for the next one.
+      // This correctly handles a player who finished a round but hasn't teed off for the next one,
+      // and players who haven't teed off at all (pre-R1).
       const todayLn = tournamentRound
         ? lines.find(x => x && x.period === tournamentRound)
         : null;
       if (todayLn && todayLn.linescores && todayLn.linescores.length > 0) {
         todayScore = todayLn.displayValue;
         thru = todayLn.linescores.length === 18 ? 'F' : String(todayLn.linescores.length);
-      } else if (todayLn) {
+      } else if (todayLn && !isOut) {
         try {
           const stats = todayLn.statistics && todayLn.statistics.categories;
           if (stats && stats[0] && stats[0].stats) {
@@ -704,424 +514,172 @@
             }
           }
         } catch (_) {}
-      } else if (!tournamentRound) {
-        // Fallback: last-played-round logic when tournament round info is unavailable
-        let lastPlayed = null;
-        for (let i = lines.length - 1; i >= 0; i--) {
-          const ln = lines[i];
-          if (ln && ln.displayValue && ln.linescores && ln.linescores.length) {
-            lastPlayed = ln; break;
+      } else if (!isOut && !tournamentRound) {
+        // Fallback when tournament round info is unavailable: pull tee time from R1
+        const ln = lines.find(x => x && x.period === 1);
+        try {
+          const stats = ln && ln.statistics && ln.statistics.categories;
+          if (stats && stats[0] && stats[0].stats) {
+            const last = stats[0].stats[stats[0].stats.length - 1];
+            if (last && typeof last.displayValue === 'string' && /\d:\d\d/.test(last.displayValue)) {
+              teeTime = formatTeeTime(last.displayValue);
+            }
           }
-        }
-        if (lastPlayed) {
-          todayScore = lastPlayed.displayValue;
-          thru = lastPlayed.linescores.length === 18 ? 'F' : String(lastPlayed.linescores.length);
-        }
+        } catch (_) {}
       }
 
-      // Compute priorToPar: sum of to-par from rounds COMPLETED before today's round.
-      // Used for day-over-day position delta.
-      let priorToPar = null;
-      if (tournamentRound && tournamentRound > 1) {
-        let sum = 0;
-        let any = false;
-        for (let r = 1; r < tournamentRound; r++) {
-          const round = rounds[r - 1];
-          if (round && round.holesPlayed === 18) {
-            const tp = parseDisplayValue(round.displayValue);
-            if (tp !== null) { sum += tp; any = true; }
-          }
-        }
-        priorToPar = any ? sum : null;
-      }
-
-      const player = {
+      list.push({
         id: athlete.id || c.id,
         name: athlete.displayName || athlete.fullName || 'Unknown',
-        toPar, isOut,
+        flagHref: (athlete.flag && athlete.flag.href) || null,
+        flagAlt: (athlete.flag && athlete.flag.alt) || '',
+        toPar,
+        isOut,
         outLabel: isCut ? 'MC' : (isWD ? 'WD' : (isDQ ? 'DQ' : null)),
-        rounds,
-        completedRounds,
-        priorToPar,
-        todayScore, thru, teeTime
-      };
-
-      byName.set(normalizeName(player.name), player);
+        hasStarted,
+        todayScore,
+        thru,
+        teeTime
+      });
     });
 
-    competitorsByName = byName;
+    competitors = list;
+  }
 
-    // Tournament positions (for display only)
-    const all = Array.from(byName.values());
-    const active = all.filter(p => p.toPar !== null && !p.isOut)
-      .slice().sort((a, b) => a.toPar - b.toPar);
+  function render() {
+    if (!tournament) {
+      document.getElementById('lb-meta').textContent = 'No active event';
+      document.getElementById('leaderboard').innerHTML = '';
+      return;
+    }
+    const metaParts = [tournament.name];
+    if (tournament.status) metaParts.push(tournament.status);
+    document.getElementById('lb-meta').textContent = metaParts.join(' · ');
+
+    const active = competitors.filter(p => !p.isOut).slice();
+    const out = competitors.filter(p => p.isOut).slice();
+
+    // Sort active: started players ranked by to-par; not-started at bottom, alpha
+    active.sort((a, b) => {
+      if (a.hasStarted && !b.hasStarted) return -1;
+      if (!a.hasStarted && b.hasStarted) return 1;
+      if (!a.hasStarted && !b.hasStarted) return a.name.localeCompare(b.name);
+      // both started
+      if (a.toPar === null && b.toPar === null) return 0;
+      if (a.toPar === null) return 1;
+      if (b.toPar === null) return -1;
+      if (a.toPar !== b.toPar) return a.toPar - b.toPar;
+      return a.name.localeCompare(b.name);
+    });
+
+    // Sort out alphabetically
+    out.sort((a, b) => a.name.localeCompare(b.name));
+
+    // Compute tournament positions for active (started only)
     let pos = 0, lastScore = null, tieGroup = [];
     function flushTie() {
       if (!tieGroup.length) return;
       const startPos = pos - tieGroup.length + 1;
       const label = (tieGroup.length > 1 ? 'T' : '') + startPos;
-      tieGroup.forEach(p => { p.tournamentPosition = label; });
+      tieGroup.forEach(p => { p.positionLabel = label; p.rankInt = startPos; });
       tieGroup = [];
     }
     active.forEach(p => {
+      if (!p.hasStarted) { p.positionLabel = '—'; p.rankInt = null; return; }
       if (lastScore !== null && p.toPar !== lastScore) flushTie();
       pos += 1;
       lastScore = p.toPar;
       tieGroup.push(p);
     });
     flushTie();
-    all.forEach(p => {
-      if (!p.tournamentPosition) p.tournamentPosition = p.isOut ? p.outLabel : '—';
-    });
-  }
 
-  // ---------- Pool scoring (Carnahan rules) ----------
-  // Only 72-hole-quality scores count. MC players contribute null (no per-round penalty).
-  // Active players who haven't teed off contribute null. Active and started: ESPN to-par.
-  function effectiveScoreForPlayer(player) {
-    if (!player) return null;
-    if (player.isOut) return null; // missed cut / WD / DQ → does not count toward total
-    const hasStarted = (player.rounds || []).some(r => r.holesPlayed > 0);
-    if (!hasStarted) return null;
-    if (player.toPar === null || player.toPar === undefined) return null;
-    return player.toPar;
-  }
-
-  function computeEntry(participant) {
-    const resolved = participant.picks.map((pickName, tierIdx) => {
-      const player = competitorsByName.get(normalizeName(pickName));
-      return {
-        tier: tierIdx + 1,
-        pickName,
-        player: player || null,
-        effective: effectiveScoreForPlayer(player),
-        isMC: !!(player && player.isOut)
-      };
-    });
-
-    const mcCount = resolved.filter(r => r.isMC).length;
-    const eliminated = mcCount >= MC_ELIMINATES_AT;
-
-    // Sort picks by effective score for best-N selection (nulls last)
-    const sortedByScore = resolved.slice().sort((a, b) => {
-      if (a.effective === null && b.effective === null) return 0;
-      if (a.effective === null) return 1;
-      if (b.effective === null) return -1;
-      return a.effective - b.effective;
-    });
-    const countedSet = new Set(sortedByScore.slice(0, COUNT_BEST).map(r => r.tier));
-
-    let total = 0;
-    let countedCount = 0;
-    sortedByScore.slice(0, COUNT_BEST).forEach(r => {
-      if (r.effective !== null) {
-        total += r.effective;
-        countedCount += 1;
-      }
-    });
-
-    // Tiebreaker 1: 4th-best score (worst of the 4 effectives) when all 4 are scoring
-    const allFourScoring = resolved.every(r => r.effective !== null);
-    const fourthBest = allFourScoring ? sortedByScore[3].effective : null;
-
-    // Tiebreaker 2: lowest single completed-round to-par across all 4 picks
-    let bestSingleRound = null;
-    resolved.forEach(r => {
-      if (!r.player) return;
-      (r.player.rounds || []).forEach(round => {
-        if (round.holesPlayed === 18) {
-          const tp = parseDisplayValue(round.displayValue);
-          if (tp !== null && (bestSingleRound === null || tp < bestSingleRound)) {
-            bestSingleRound = tp;
-          }
-        }
-      });
-    });
-
-    // Prior-day computation (same logic as above but using each player's priorToPar)
-    // Used to compute day-over-day position movement.
-    let priorTotal = 0, priorCountedCount = 0;
-    if (tournamentRound && tournamentRound > 1) {
-      const priorScores = resolved.map(r => {
-        if (!r.player || r.player.isOut) return null;
-        return (r.player.priorToPar !== null && r.player.priorToPar !== undefined)
-          ? r.player.priorToPar : null;
-      });
-      const sortedPrior = priorScores.slice().sort((a, b) => {
-        if (a === null && b === null) return 0;
-        if (a === null) return 1;
-        if (b === null) return -1;
-        return a - b;
-      });
-      sortedPrior.slice(0, COUNT_BEST).forEach(s => {
-        if (s !== null) { priorTotal += s; priorCountedCount += 1; }
-      });
-    }
-
-    return {
-      participant,
-      picks: resolved,
-      countedSet,
-      total,
-      countedCount,
-      mcCount,
-      eliminated,
-      fourthBest,
-      bestSingleRound,
-      priorTotal,
-      priorCountedCount,
-      hasUnmatched: resolved.some(r => r.player === null)
-    };
-  }
-
-  function render() {
-    if (!tournament) {
-      document.getElementById('pool-meta').textContent = 'No active event';
-      document.getElementById('leaderboard').innerHTML = '';
-      return;
-    }
-    const metaParts = [tournament.name];
-    if (tournament.status) metaParts.push(tournament.status);
-    metaParts.push(PARTICIPANTS.length + ' entries');
-    document.getElementById('pool-meta').textContent = metaParts.join(' · ');
-
-    const entries = PARTICIPANTS.map(computeEntry);
-
-    // Split into active vs eliminated
-    const active = entries.filter(e => !e.eliminated);
-    const eliminated = entries.filter(e => e.eliminated);
-
-    // Sort active: total → 4th-best → lowest single round → alphabetical
-    function tieBreakerCmp(a, b) {
-      // Tiebreaker 1: 4th-best (only when both have all 4 scoring; otherwise the one that does wins)
-      if (a.fourthBest !== null && b.fourthBest !== null) {
-        if (a.fourthBest !== b.fourthBest) return a.fourthBest - b.fourthBest;
-      } else if (a.fourthBest !== null) {
-        return -1;
-      } else if (b.fourthBest !== null) {
-        return 1;
-      }
-      // Tiebreaker 2: lowest single completed round
-      if (a.bestSingleRound !== null && b.bestSingleRound !== null) {
-        if (a.bestSingleRound !== b.bestSingleRound) return a.bestSingleRound - b.bestSingleRound;
-      } else if (a.bestSingleRound !== null) {
-        return -1;
-      } else if (b.bestSingleRound !== null) {
-        return 1;
-      }
-      return 0;
-    }
-    active.sort((a, b) => {
-      const aNone = a.countedCount === 0;
-      const bNone = b.countedCount === 0;
-      if (aNone && bNone) return a.participant.name.localeCompare(b.participant.name);
-      if (aNone) return 1;
-      if (bNone) return -1;
-      if (a.total !== b.total) return a.total - b.total;
-      const tb = tieBreakerCmp(a, b);
-      if (tb !== 0) return tb;
-      return a.participant.name.localeCompare(b.participant.name);
-    });
-
-    // Sort eliminated: alphabetical
-    eliminated.sort((a, b) => a.participant.name.localeCompare(b.participant.name));
-
-    // Positions for active only — only T-group when total AND tiebreakers all match
-    function fullyTied(a, b) {
-      return a.total === b.total && tieBreakerCmp(a, b) === 0;
-    }
-    let pos = 0, prevEntry = null, tieGroup = [];
-    function flushTie() {
-      if (!tieGroup.length) return;
-      const startPos = pos - tieGroup.length + 1;
-      const label = (tieGroup.length > 1 ? 'T' : '') + startPos;
-      tieGroup.forEach(e => { e.positionLabel = label; e.rankInt = startPos; });
-      tieGroup = [];
-    }
-    active.forEach(e => {
-      if (e.countedCount === 0) { e.positionLabel = '—'; e.rankInt = null; return; }
-      if (prevEntry !== null && !fullyTied(prevEntry, e)) flushTie();
-      pos += 1;
-      prevEntry = e;
-      tieGroup.push(e);
-    });
-    flushTie();
-
-    eliminated.forEach(e => { e.positionLabel = 'CUT'; e.rankInt = null; });
-
-    // Compute day-over-day position deltas (active entries only, only when there's a prior day)
-    if (tournamentRound && tournamentRound > 1) {
-      const eligibleForPrior = active.filter(e => e.priorCountedCount > 0);
-      eligibleForPrior.sort((a, b) => {
-        if (a.priorTotal !== b.priorTotal) return a.priorTotal - b.priorTotal;
-        return a.participant.name.localeCompare(b.participant.name);
-      });
-      let priorPos = 0, prevPriorTotal = null;
-      eligibleForPrior.forEach(e => {
-        if (prevPriorTotal === null || e.priorTotal !== prevPriorTotal) {
-          priorPos = priorPos + 1 + (prevPriorTotal === null ? 0 : 0);
-          // Use position counter that increments only when total differs
-        }
-        prevPriorTotal = e.priorTotal;
-      });
-      // Re-do with proper tie-aware ranking
-      priorPos = 0;
-      prevPriorTotal = null;
-      let tieCount = 0;
-      eligibleForPrior.forEach((e, idx) => {
-        if (idx === 0 || e.priorTotal !== prevPriorTotal) {
-          priorPos = idx + 1;
-        }
-        e.priorRank = priorPos;
-        prevPriorTotal = e.priorTotal;
-      });
-      // Compute delta per entry: positive = moved up, negative = moved down
-      active.forEach(e => {
-        if (e.rankInt && e.priorRank) {
-          e.positionDelta = e.priorRank - e.rankInt;
-        } else {
-          e.positionDelta = null;
-        }
-      });
-    } else {
-      active.forEach(e => { e.positionDelta = null; });
-    }
+    out.forEach(p => { p.positionLabel = p.outLabel || 'OUT'; p.rankInt = null; });
 
     const board = document.getElementById('leaderboard');
     board.innerHTML = '';
 
     const head = document.createElement('div');
-    head.className = 'leaderboard-head';
-    head.innerHTML = `<span>Pos</span><span></span><span>Team</span><span class="num">Total</span><span></span>`;
+    head.className = 'lb-head';
+    head.innerHTML = `<span>Pos</span><span></span><span>Player</span><span class="num">Today</span><span class="num">Thru</span><span class="num">Total</span>`;
     board.appendChild(head);
 
-    // Pin ALL favorites (active and eliminated) to the very top of the board.
-    // Active favorites first in their total-sorted order, then eliminated favorites
-    // in their alphabetical order. Then non-favorited active, then the eliminated
-    // divider, then non-favorited eliminated.
-    const favActive = active.filter(e => favorites.has(e.participant.name));
-    const favEliminated = eliminated.filter(e => favorites.has(e.participant.name));
-    const nonFavActive = active.filter(e => !favorites.has(e.participant.name));
-    const nonFavEliminated = eliminated.filter(e => !favorites.has(e.participant.name));
+    // Pin favorites to top of active section
+    active.sort((a, b) => {
+      const aFav = favorites.has(a.name);
+      const bFav = favorites.has(b.name);
+      if (aFav !== bFav) return aFav ? -1 : 1;
+      return 0;
+    });
 
-    favActive.forEach(entry => board.appendChild(renderEntry(entry)));
-    favEliminated.forEach(entry => board.appendChild(renderEntry(entry)));
-    nonFavActive.forEach(entry => board.appendChild(renderEntry(entry)));
+    active.forEach(p => board.appendChild(renderRow(p)));
 
-    if (nonFavEliminated.length) {
+    if (out.length) {
       const divider = document.createElement('div');
       divider.className = 'section-divider';
-      divider.textContent = `Eliminated · ${eliminated.length} team${eliminated.length === 1 ? '' : 's'} (2+ missed cuts)`;
+      const labels = [];
+      const mcCount = out.filter(p => p.outLabel === 'MC').length;
+      const wdCount = out.filter(p => p.outLabel === 'WD').length;
+      const dqCount = out.filter(p => p.outLabel === 'DQ').length;
+      if (mcCount) labels.push(`${mcCount} missed cut`);
+      if (wdCount) labels.push(`${wdCount} withdrew`);
+      if (dqCount) labels.push(`${dqCount} disqualified`);
+      divider.textContent = labels.length ? `Out · ${labels.join(', ')}` : 'Out';
       board.appendChild(divider);
-      nonFavEliminated.forEach(entry => board.appendChild(renderEntry(entry)));
+      // Pin favorites to top of out section
+      out.sort((a, b) => {
+        const aFav = favorites.has(a.name);
+        const bFav = favorites.has(b.name);
+        if (aFav !== bFav) return aFav ? -1 : 1;
+        return 0;
+      });
+
+      out.forEach(p => board.appendChild(renderRow(p)));
     }
 
     applySearch(!initialFilterApplied);
     initialFilterApplied = true;
   }
 
-  function renderEntry(entry) {
-    const div = document.createElement('div');
-    div.className = 'entry';
-    if (entry.eliminated) div.classList.add('eliminated');
-    if (entry.rankInt === 1) div.classList.add('rank-1');
-    else if (entry.rankInt === 2) div.classList.add('rank-2');
-    else if (entry.rankInt === 3) div.classList.add('rank-3');
-    if (openParticipants.has(entry.participant.name)) div.classList.add('open');
+  function renderRow(p) {
+    const row = document.createElement('div');
+    row.className = 'lb-row';
+    row.dataset.playerName = p.name;
+    if (p.isOut) row.classList.add('is-out');
+    if (p.rankInt === 1) row.classList.add('rank-1');
+    else if (p.rankInt === 2) row.classList.add('rank-2');
+    else if (p.rankInt === 3) row.classList.add('rank-3');
 
-    const summary = document.createElement('div');
-    summary.className = 'entry-summary';
-    summary.dataset.participantName = entry.participant.name;
-    let totalDisplay, totalClass;
-    if (entry.eliminated) {
-      totalDisplay = 'OUT';
-      totalClass = '';
-    } else if (entry.countedCount === 0) {
-      totalDisplay = '—';
-      totalClass = '';
+    const flagHtml = p.flagHref
+      ? `<img class="lb-flag" src="${escapeHtml(p.flagHref)}" alt="${escapeHtml(p.flagAlt)}" loading="lazy" />`
+      : '<span class="lb-flag"></span>';
+    const todayHtml = p.isOut
+      ? '<span style="color:var(--text-faint)">—</span>'
+      : (p.todayScore
+          ? `<span class="${todayClass(p.todayScore)}">${escapeHtml(p.todayScore)}</span>`
+          : '<span style="color:var(--text-faint)">—</span>');
+    const thruHtml = p.isOut
+      ? '—'
+      : (p.thru || p.teeTime || '—');
+    let totalHtml;
+    if (p.isOut) {
+      totalHtml = `<span class="s-cut">${escapeHtml(p.outLabel || 'OUT')}${p.toPar !== null ? ' ' + fmtScore(p.toPar) : ''}</span>`;
+    } else if (!p.hasStarted) {
+      totalHtml = '<span style="color:var(--text-faint)">—</span>';
     } else {
-      totalDisplay = fmtScore(entry.total);
-      totalClass = scoreClass(entry.total);
+      totalHtml = `<span class="${scoreClass(p.toPar)}">${fmtScore(p.toPar)}</span>`;
     }
-    const isFav = favorites.has(entry.participant.name);
+
+    const isFav = favorites.has(p.name);
     const starSvg = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
-    // Position delta arrow (day-over-day movement)
-    let deltaHtml = '';
-    if (!entry.eliminated && entry.positionDelta !== null && entry.positionDelta !== undefined) {
-      if (entry.positionDelta > 0) {
-        deltaHtml = `<span class="entry-delta delta-up">▲ ${entry.positionDelta}</span>`;
-      } else if (entry.positionDelta < 0) {
-        deltaHtml = `<span class="entry-delta delta-down">▼ ${-entry.positionDelta}</span>`;
-      } else {
-        deltaHtml = `<span class="entry-delta delta-flat">—</span>`;
-      }
-    }
-    summary.innerHTML = `
-      <span class="entry-pos">${entry.positionLabel}${deltaHtml}</span>
-      <button class="fav-btn ${isFav ? 'is-fav' : ''}" data-name="${escapeHtml(entry.participant.name)}" aria-label="${isFav ? 'Remove favorite' : 'Add to favorites'}" title="${isFav ? 'Remove favorite' : 'Add to favorites'}">${starSvg}</button>
-      <span class="entry-name">${escapeHtml(entry.participant.name)}</span>
-      <span class="entry-total ${totalClass}">${totalDisplay}</span>
-      <span class="entry-caret">▸</span>
+    row.innerHTML = `
+      <span class="lb-pos">${p.positionLabel}</span>
+      <button class="fav-btn ${isFav ? 'is-fav' : ''}" data-name="${escapeHtml(p.name)}" aria-label="${isFav ? 'Remove favorite' : 'Add to favorites'}" title="${isFav ? 'Remove favorite' : 'Add to favorites'}">${starSvg}</button>
+      <span class="lb-player">${flagHtml}<span class="lb-name">${escapeHtml(p.name)}</span></span>
+      <span class="lb-today num">${todayHtml}</span>
+      <span class="lb-thru num">${escapeHtml(thruHtml)}</span>
+      <span class="lb-total num">${totalHtml}</span>
     `;
-    div.appendChild(summary);
-
-    const detail = document.createElement('div');
-    detail.className = 'entry-detail';
-    const table = document.createElement('table');
-    table.className = 'picks-table';
-    table.innerHTML = `
-      <thead>
-        <tr>
-          <th>T</th>
-          <th>Player</th>
-          <th>Pos</th>
-          <th class="num">Thru</th>
-          <th class="num">Today</th>
-          <th class="num">Score</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    `;
-    const tbody = table.querySelector('tbody');
-    entry.picks.forEach(pick => {
-      const tr = document.createElement('tr');
-      const isCounted = entry.countedSet.has(pick.tier) && pick.effective !== null;
-      if (!isCounted) tr.className = 'dropped';
-
-      if (!pick.player) {
-        tr.innerHTML = `
-          <td class="tier">T${pick.tier}</td>
-          <td class="player not-found">${escapeHtml(pick.pickName)} (not in field)</td>
-          <td class="pos">—</td>
-          <td class="num thru">—</td>
-          <td class="num today">—</td>
-          <td class="num effective">—</td>
-        `;
-      } else {
-        const p = pick.player;
-        const effectiveDisplay = pick.effective === null
-          ? (p.isOut ? p.outLabel : '—')
-          : fmtScore(pick.effective);
-        const effectiveClass = p.isOut ? 's-cut'
-          : (pick.effective === null ? '' : scoreClass(pick.effective));
-        const thruCell = p.isOut ? '—' : (p.thru || (p.teeTime || '—'));
-        const todayCell = p.isOut ? '—'
-          : (p.todayScore ? `<span class="${todayClass(p.todayScore)}">${p.todayScore}</span>` : '—');
-        const posLabel = p.isOut ? p.outLabel : (p.tournamentPosition || '—');
-        tr.innerHTML = `
-          <td class="tier">T${pick.tier}</td>
-          <td class="player">${escapeHtml(p.name)}</td>
-          <td class="pos">${posLabel}</td>
-          <td class="num thru">${thruCell}</td>
-          <td class="num today">${todayCell}</td>
-          <td class="num effective ${effectiveClass}">${effectiveDisplay}</td>
-        `;
-      }
-      tbody.appendChild(tr);
-    });
-    detail.appendChild(table);
-    div.appendChild(detail);
-    return div;
+    return row;
   }
 
   function toggleFavorite(name) {
@@ -1133,12 +691,12 @@
 
   function applySearch(scrollToMatch) {
     const query = normalizeName(searchQuery);
-    const entries = document.querySelectorAll('.entry');
+    const rows = document.querySelectorAll('.lb-row');
     const clearBtn = document.getElementById('find-team-clear');
     const statusEl = document.getElementById('find-team-status');
 
     if (!query) {
-      entries.forEach(e => e.classList.remove('filter-dim', 'filter-match'));
+      rows.forEach(r => r.classList.remove('filter-dim', 'filter-match'));
       clearBtn.classList.remove('visible');
       statusEl.classList.remove('visible');
       return;
@@ -1147,21 +705,20 @@
     clearBtn.classList.add('visible');
 
     const matches = [];
-    entries.forEach(entry => {
-      const summary = entry.querySelector('.entry-summary');
-      const name = summary && summary.dataset.participantName;
-      if (name && normalizeName(name).includes(query)) {
-        entry.classList.add('filter-match');
-        entry.classList.remove('filter-dim');
-        matches.push(entry);
+    rows.forEach(row => {
+      const name = row.dataset.playerName || '';
+      if (normalizeName(name).includes(query)) {
+        row.classList.add('filter-match');
+        row.classList.remove('filter-dim');
+        matches.push(row);
       } else {
-        entry.classList.remove('filter-match');
-        entry.classList.add('filter-dim');
+        row.classList.remove('filter-match');
+        row.classList.add('filter-dim');
       }
     });
 
     if (matches.length === 0) {
-      entries.forEach(e => e.classList.remove('filter-dim'));
+      rows.forEach(r => r.classList.remove('filter-dim'));
       statusEl.textContent = 'No matches';
       statusEl.classList.add('visible');
     } else {
@@ -1192,14 +749,6 @@
     if (favBtn) {
       e.stopPropagation();
       toggleFavorite(favBtn.dataset.name);
-      return;
-    }
-    const summary = e.target.closest('.entry-summary');
-    if (summary) {
-      const name = summary.dataset.participantName;
-      if (openParticipants.has(name)) openParticipants.delete(name);
-      else openParticipants.add(name);
-      render();
     }
   });
 
@@ -1230,19 +779,40 @@
     findInput.focus();
   });
 
-  // Remember which pool the user is on (read by leaderboard back button)
-  try { localStorage.setItem('majorPoolTracker:lastPool', 'carnahan'); } catch (_) {}
-
   try {
     const savedFavs = localStorage.getItem(FAVORITES_KEY);
     if (savedFavs) favorites = new Set(JSON.parse(savedFavs));
   } catch (_) {}
   try {
     const saved = localStorage.getItem(SEARCH_KEY);
-    if (saved) {
-      searchQuery = saved;
-      findInput.value = saved;
+    if (saved) { searchQuery = saved; findInput.value = saved; }
+  } catch (_) {}
+
+  // Determine which pool to send the user back to.
+  // Use document.referrer when available (immediate, accurate), else fall back to
+  // the last pool the user visited (tracked by each pool page in localStorage).
+  try {
+    const ref = document.referrer || '';
+    const backBtn = document.getElementById('back-btn');
+    const backLabel = document.getElementById('back-btn-label');
+
+    let lastPool = null;
+    try { lastPool = localStorage.getItem('majorPoolTracker:lastPool'); } catch (_) {}
+
+    let target = null;
+    if (ref.includes('/carnahan.html')) target = 'carnahan';
+    else if (ref.includes('/pool.html')) target = 'kiernan';
+    else if (lastPool === 'carnahan') target = 'carnahan';
+    else if (lastPool === 'kiernan') target = 'kiernan';
+
+    if (target === 'carnahan') {
+      backBtn.href = 'carnahan.html';
+      backLabel.textContent = 'Carnahan Pool';
+    } else if (target === 'kiernan') {
+      backBtn.href = 'pool.html';
+      backLabel.textContent = 'Kiernan Pool';
     }
+    // else: keep default "Back to Pool" → pool.html
   } catch (_) {}
 
   fetchScoreboard();
