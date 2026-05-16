@@ -540,6 +540,7 @@
   let tournament = null;
   let competitorsByName = new Map();
   let tournamentRound = null; // current round number from ESPN event status
+  let roundComplete = [false, false, false, false]; // which rounds are field-complete (all made-cut players done)
   let lastFetch = null;
   let openParticipants = new Set(); // for expand state
   let favorites = new Set();
@@ -658,6 +659,25 @@
     });
     const cutHasHappened = withR3 > 0 && withR3 < raw.length;
 
+    // Determine which rounds are "complete" for the field. A round R is complete when every
+    // player who has a linescores entry for R has 18 holes for it. Cut players don't have
+    // an entry for R3/R4 and so don't gate completion. This is the signal for applying
+    // the gradual MC penalty: each round's +80 stroke (+10 to-par) penalty only kicks in
+    // once R is complete for the field, not at the moment the cut is decided.
+    for (let r = 1; r <= TOTAL_ROUNDS; r++) {
+      let anyEntries = false;
+      let everyoneDone = true;
+      raw.forEach(c => {
+        const ln = (c.linescores || []).find(l => l && l.period === r);
+        if (ln) {
+          anyEntries = true;
+          const holes = (ln.linescores && ln.linescores.length) || 0;
+          if (holes < 18) everyoneDone = false;
+        }
+      });
+      roundComplete[r - 1] = anyEntries && everyoneDone;
+    }
+
     const byName = new Map();
     raw.forEach(c => {
       const athlete = c.athlete || {};
@@ -739,16 +759,20 @@
         }
       }
 
-      // Compute priorEffective: each player's score expressed as the Kiernan-style effective
-      // (sum of completed-round to-par contributions) as of the end of yesterday's round.
-      // For out players the penalty is locked the moment they're cut, so prior = current,
-      // ensuring the position delta reflects only real R3 movement and not the cut transition.
+      // Compute priorEffective using the same formula as effectiveScoreForPlayer for out
+      // players, so out picks contribute zero day-over-day movement (their penalty change
+      // happens at round-end transitions, not continuously).
       let priorEffective = null;
       if (tournamentRound && tournamentRound > 1) {
         if (isOut) {
-          // Match the formula used in effectiveScoreForPlayer so prior == current for out players
           if (toPar !== null) {
-            const missedOut = Math.max(0, TOTAL_ROUNDS - completedRounds);
+            // Inline countFieldCompleteMissedRounds (player object doesn't exist yet here)
+            let missedOut = 0;
+            for (let r = 1; r <= TOTAL_ROUNDS; r++) {
+              const round = rounds[r - 1];
+              const played18 = round && round.holesPlayed === 18;
+              if (!played18 && roundComplete[r - 1]) missedOut++;
+            }
             priorEffective = toPar + missedOut * PENALTY_PER_MISSED_ROUND;
           }
         } else {
@@ -807,18 +831,30 @@
   }
 
   // ---------- Pool-specific scoring ----------
+  function countFieldCompleteMissedRounds(player) {
+    // Count rounds the player did NOT play 18 holes AND the field has completed.
+    // The MC penalty applies gradually: each missed round's +10 to-par only kicks in
+    // once that round is complete for the made-cut field, not at the moment of cut.
+    let missed = 0;
+    for (let r = 1; r <= TOTAL_ROUNDS; r++) {
+      const round = player.rounds && player.rounds[r - 1];
+      const played18 = round && round.holesPlayed === 18;
+      if (!played18 && roundComplete[r - 1]) missed++;
+    }
+    return missed;
+  }
+
   function effectiveScoreForPlayer(player) {
     // Returns effective score expressed as TO-PAR so values compare cleanly across
     // players at different stages of the day:
-    //   - MC/WD/DQ: ESPN's frozen to-par + (missed rounds × PENALTY_PER_MISSED_ROUND)
+    //   - MC/WD/DQ: ESPN's frozen to-par + (field-complete missed rounds × PENALTY_PER_MISSED_ROUND)
     //   - Active and started: ESPN's reported to-par
     //   - Active but not teed off yet: null (excluded from totals)
     if (!player) return null;
 
     if (player.isOut) {
       const base = (player.toPar === null || player.toPar === undefined) ? 0 : player.toPar;
-      const missed = Math.max(0, TOTAL_ROUNDS - player.completedRounds);
-      return base + missed * PENALTY_PER_MISSED_ROUND;
+      return base + countFieldCompleteMissedRounds(player) * PENALTY_PER_MISSED_ROUND;
     }
 
     const hasStarted = (player.rounds || []).some(r => r.holesPlayed > 0);
