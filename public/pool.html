@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Kiernan Pool" />
-<title>Kiernan's PGA Championship Pool 2026</title>
+<title>Kiernan's US Open Pool 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -244,7 +244,7 @@
     color: var(--text-faint);
     font-family: 'JetBrains Mono', monospace;
     font-size: 10.5px;
-    width: 30px;
+    width: 40px;
   }
   .picks-table .player { color: var(--text); }
   .picks-table .pos { color: var(--text-muted); font-family: 'JetBrains Mono', monospace; font-size: 11px; width: 36px; }
@@ -438,11 +438,11 @@
 <div class="app">
   <div class="header">
     <div>
-      <h1 class="pool-title">Kiernan's PGA Championship Pool 2026</h1>
+      <h1 class="pool-title">Kiernan's US Open Pool 2026</h1>
       <div class="pool-meta" id="pool-meta">Loading tournament…</div>
     </div>
     <div class="header-actions">
-      <a class="icon-btn with-label" href="leaderboard.html" title="PGA Championship Leaderboard" aria-label="PGA Championship Leaderboard"><span>Leaderboard</span>
+      <a class="icon-btn with-label" href="leaderboard.html" title="US Open Leaderboard" aria-label="US Open Leaderboard"><span>Leaderboard</span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
       </a>
       <button class="icon-btn" id="refresh-btn" title="Refresh now">
@@ -495,7 +495,7 @@
   const REFRESH_SECONDS = 180;
 
   // Pool scoring config
-  const COURSE_PAR = 70;                                       // Aronimink (update per tournament)
+  const COURSE_PAR = 70;                                       // Shinnecock Hills (update per tournament)
   const PENALTY_RAW = 80;                                      // pool rule: missed round = automatic 80
   const PENALTY_PER_MISSED_ROUND = PENALTY_RAW - COURSE_PAR;   // converted to to-par for display
   const TOTAL_ROUNDS = 4;
@@ -507,34 +507,29 @@
   const FAVORITES_KEY = 'kiernanPool:favorites';
 
   const PARTICIPANTS = [
-    { name: 'John Brecher',     picks: ['Rory McIlroy', 'Justin Thomas', 'Viktor Hovland', 'Hideki Matsuyama', 'Alex Fitzpatrick', 'Aaron Rai'] },
-    { name: 'Joe Niehaus',      picks: ['Cameron Young', 'Chris Gotterup', 'Sam Burns', 'Shane Lowry', 'Jason Day', 'Wyndham Clark'] },
-    { name: 'David Claveau',    picks: ['Scottie Scheffler', 'Russell Henley', 'Viktor Hovland', 'Gary Woodland', 'Alex Fitzpatrick', 'Aaron Rai'] },
-    { name: 'George Cook',      picks: ['Rory McIlroy', 'Justin Thomas', 'Sam Burns', 'Shane Lowry', 'Jason Day', 'Daniel Berger'] },
-    { name: 'Tino Rossi',       picks: ['Scottie Scheffler', 'Russell Henley', 'Sam Burns', 'Ben Griffin', 'Joaquin Niemann', 'Aaron Rai'] },
-    { name: 'Jay Ezell',        picks: ['Rory McIlroy', 'Justin Rose', 'Viktor Hovland', 'Hideki Matsuyama', 'Jason Day', 'Max Homa'] },
-    { name: 'Scott Kiernan',    picks: ['Scottie Scheffler', 'Justin Thomas', 'Rickie Fowler', 'Jordan Spieth', 'Jason Day', 'Brian Harman'] },
-    { name: 'Tom Goode',        picks: ['Rory McIlroy', 'Justin Rose', 'Patrick Reed', 'Jordan Spieth', 'Jason Day', 'Matt McCarty'] },
-    { name: 'Riley Gardner',    picks: ['Cameron Young', 'Russell Henley', 'Rickie Fowler', 'Keegan Bradley', 'Joaquin Niemann', 'Aaron Rai'] },
-    { name: 'Tyler Kuresa',     picks: ['Scottie Scheffler', 'Brooks Koepka', 'Sam Burns', 'Hideki Matsuyama', 'Sungjae Im', 'Sahith Theegala'] },
-    { name: 'James Weston',     picks: ['Cameron Young', 'Brooks Koepka', 'Rickie Fowler', 'Akshay Bhatia', 'Sungjae Im', 'Rasmus Hojgaard'] },
-    { name: 'Ben Faubion',      picks: ['Cameron Young', 'Russell Henley', 'Sam Burns', 'Keegan Bradley', 'Alex Fitzpatrick', 'Brian Harman'] },
-    { name: 'Ron Peters',       picks: ['Cameron Young', 'Brooks Koepka', 'Viktor Hovland', 'Jordan Spieth', 'Corey Conners', 'Sahith Theegala'] },
-    { name: 'Denny Boom',       picks: ['Cameron Young', 'Justin Rose', 'Rickie Fowler', 'Hideki Matsuyama', 'Jason Day', 'Wyndham Clark'] },
-    { name: 'Mark Ellinghouse', picks: ['Rory McIlroy', 'Justin Rose', 'Viktor Hovland', 'Ben Griffin', 'Alex Fitzpatrick', 'Brian Harman'] },
-    { name: 'Nate Carnahan',    picks: ['Scottie Scheffler', 'Chris Gotterup', 'Rickie Fowler', 'Gary Woodland', 'Alex Fitzpatrick', 'Matt McCarty'] },
-    { name: 'Dave Mossman',     picks: ['Scottie Scheffler', 'Justin Rose', 'Patrick Reed', 'Akshay Bhatia', 'Alex Noren', 'Brian Harman'] },
-    { name: 'Todd Chandler',    picks: ['Scottie Scheffler', 'Brooks Koepka', 'Rickie Fowler', 'Hideki Matsuyama', 'Alex Fitzpatrick', 'Brian Harman'] },
-    { name: 'Tom Walcott',      picks: ['Scottie Scheffler', 'Justin Thomas', 'Viktor Hovland', 'Gary Woodland', 'Sungjae Im', 'Daniel Berger'] },
-    { name: 'Eric Ortiz',       picks: ['Scottie Scheffler', 'Tyrrell Hatton', 'Rickie Fowler', 'Jordan Spieth', 'Alex Fitzpatrick', 'Max Homa'] },
-    { name: 'Dusty Haeling 1',  picks: ['Rory McIlroy', 'Justin Thomas', 'Viktor Hovland', 'Hideki Matsuyama', 'Corey Conners', 'Sahith Theegala'] },
-    { name: 'Dusty Haeling 2',  picks: ['Ludvig Aberg', 'Tyrrell Hatton', 'Sam Burns', 'Akshay Bhatia', 'Jason Day', 'Wyndham Clark'] },
-    { name: 'Chris Roby',       picks: ['Cameron Young', 'Patrick Cantlay', 'Patrick Reed', 'Jordan Spieth', 'Joaquin Niemann', 'Matt McCarty'] },
-    { name: 'Lyn Cristopulos',  picks: ['Scottie Scheffler', 'Min Woo Lee', 'Rickie Fowler', 'Keegan Bradley', 'Alex Smalley', 'Max Homa'] },
-    { name: 'Carrie Blythe',    picks: ['Rory McIlroy', 'Justin Thomas', 'Sam Burns', 'Jordan Spieth', 'Thomas Detry', 'Wyndham Clark'] },
-    { name: 'Kyri Washington',  picks: ['Cameron Young', 'Justin Thomas', 'Rickie Fowler', 'Shane Lowry', 'Alex Fitzpatrick', 'Michael Thorbjornsen'] },
-    { name: 'Dak Digerness',    picks: ['Jon Rahm', 'Nicolai Hojgaard', 'Viktor Hovland', 'Hideki Matsuyama', 'Alex Fitzpatrick', 'Max Homa'] },
-    { name: 'Jeremy Bautista',  picks: ['Cameron Young', 'Russell Henley', 'Rickie Fowler', 'Ben Griffin', 'Jason Day', 'Max Homa'] }
+    { name: 'John Brecher',     picks: ['Scottie Scheffler', 'Russell Henley', 'Patrick Reed', 'Jake Knapp', 'Alex Noren', 'J.T. Poston'] },
+    { name: 'Lyn Christopulos', picks: ['Tommy Fleetwood', 'Si Woo Kim', 'Patrick Cantlay', 'Alex Smalley', 'Kurt Kitayama', 'Brian Harman'] },
+    { name: 'Riley Gardner',    picks: ['Scottie Scheffler', 'Russell Henley', 'J.J. Spaun', 'Maverick McNealy', 'Sepp Straka', 'Brian Harman'] },
+    { name: 'Jeff Kvarme',      picks: ['Rory McIlroy', 'Collin Morikawa', 'J.J. Spaun', 'Alex Fitzpatrick', 'Nicolai Hojgaard', 'Keegan Bradley'] },
+    { name: 'Tom Walcott',      picks: ['Scottie Scheffler', 'Justin Thomas', 'Jordan Spieth', 'Maverick McNealy', 'Kurt Kitayama', 'Corey Conners'] },
+    { name: 'Eric Ortiz',       picks: ['Matt Fitzpatrick', 'Russell Henley', 'J.J. Spaun', 'Gary Woodland', 'Kurt Kitayama', 'Ryo Hisatsune'] },
+    { name: 'George Cook',      picks: ['Rory McIlroy', 'Justin Thomas', 'Hideki Matsuyama', 'Harris English', 'Kurt Kitayama', 'Sungjae Im'] },
+    { name: 'Mark Ellinghouse', picks: ['Xander Schauffele', 'Collin Morikawa', 'Patrick Reed', 'Adam Scott', 'Sepp Straka', 'Jason Day'] },
+    { name: 'David Mossman',    picks: ['Scottie Scheffler', 'Chris Gotterup', 'Patrick Reed', 'Adam Scott', 'Nicolai Hojgaard', 'Jacob Bridgeman'] },
+    { name: 'Joe Niehaus',      picks: ['Scottie Scheffler', 'Justin Thomas', 'Jordan Spieth', 'Harris English', 'Dustin Johnson', 'J.T. Poston'] },
+    { name: 'Jeremy Bautista',  picks: ['Scottie Scheffler', 'Justin Rose', 'Robert MacIntyre', 'Maverick McNealy', 'Sepp Straka', 'Corey Conners'] },
+    { name: 'Courtney Oates',   picks: ['Scottie Scheffler', 'Russell Henley', 'Patrick Reed', 'Maverick McNealy', 'Alex Noren', 'Daniel Berger'] },
+    { name: 'Greg Levi',        picks: ['Tommy Fleetwood', 'Russell Henley', 'Patrick Cantlay', 'Alex Fitzpatrick', 'Sepp Straka', 'Matthew Jordan'] },
+    { name: 'James Levi',       picks: ['Matt Fitzpatrick', 'Sam Burns', 'Patrick Cantlay', 'Akshay Bhatia', 'Kurt Kitayama', 'Jacob Bridgeman'] },
+    { name: 'Tom Goode',        picks: ['Scottie Scheffler', 'Justin Rose', 'Patrick Reed', 'Ben Griffin', 'Nicolai Hojgaard', 'Keegan Bradley'] },
+    { name: 'James Weston',     picks: ['Scottie Scheffler', 'Justin Thomas', 'Hideki Matsuyama', 'Akshay Bhatia', 'Sepp Straka', 'Rickie Fowler'] },
+    { name: 'Denny Boom',       picks: ['Rory McIlroy', 'Justin Thomas', 'Aaron Rai', 'Harris English', 'Cameron Smith', 'Jason Day'] },
+    { name: 'Scott Kiernan',    picks: ['Scottie Scheffler', 'Collin Morikawa', 'J.J. Spaun', 'Harris English', 'Cameron Smith', 'Jason Day'] },
+    { name: 'Tyler Kuresa',     picks: ['Scottie Scheffler', 'Collin Morikawa', 'J.J. Spaun', 'Harris English', 'Kurt Kitayama', 'Sungjae Im'] },
+    { name: 'Jay Ezzell',       picks: ['Rory McIlroy', 'Russell Henley', 'Hideki Matsuyama', 'Akshay Bhatia', 'Kristoffer Reitan', 'Jason Day'] },
+    { name: 'Nate Carnahan',    picks: ['Matt Fitzpatrick', 'Wyndham Clark', 'Patrick Reed', 'Jake Knapp', 'Cameron Smith', 'Brian Harman'] },
+    { name: 'Chris Roby',       picks: ['Scottie Scheffler', 'Tyrrell Hatton', 'Patrick Reed', 'David Puig', 'Alex Noren', 'Brian Harman'] },
+    { name: 'Todd Chandler',    picks: ['Scottie Scheffler', 'Justin Thomas', 'J.J. Spaun', 'Adam Scott', 'Sepp Straka', 'Jason Day'] }
   ];
 
   let tournament = null;
@@ -1027,7 +1022,7 @@
     table.innerHTML = `
       <thead>
         <tr>
-          <th>T</th>
+          <th>Tier</th>
           <th>Player</th>
           <th>Pos</th>
           <th class="num">Thru</th>
