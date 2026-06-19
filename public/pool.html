@@ -576,23 +576,29 @@
   }
   function formatTeeTime(raw) {
     if (!raw) return null;
-    const s = String(raw);
-    // Match HH:MM with optional :SS and optional am/pm anywhere in the string
-    const m = s.match(/(\d{1,2}):(\d{2})(?::\d{2})?\s*(am|pm|a|p)?/i);
+    const s = String(raw).trim();
+    // ESPN's golf tee-time strings look like "Fri Jun 19 08:29:00 PDT 2026".
+    // IMPORTANT: the timezone label is unreliable. ESPN reports the digits as
+    // Eastern wall-clock time but tags them "PDT". The actual instant is Eastern,
+    // so we convert ET -> PT by subtracting 3 hours. (Confirmed against the USGA
+    // tee sheet: ESPN "08:29 ... PDT" = true 5:29 AM PT.)
+    //
+    // The regex captures H:MM (and optional :SS) but only treats a *standalone*
+    // am/pm token as a meridian. This prevents the leading "P" of "PDT" from being
+    // misread as PM, which was the original bug (8:29 rendered as 5:29p).
+    const m = s.match(/\b(\d{1,2}):(\d{2})(?::\d{2})?\b(?:\s+(am|pm)\b)?/i);
     if (!m) return s;
     let hour = parseInt(m[1], 10);
     const minute = parseInt(m[2], 10);
     const ampm = (m[3] || '').toLowerCase();
-    // Normalize to 24-hour
-    if (ampm.startsWith('p') && hour < 12) hour += 12;
-    if (ampm.startsWith('a') && hour === 12) hour = 0;
-    // ESPN's tee time values are always in ET regardless of how their string labels them.
-    // Convert to PDT by subtracting 3 hours. (ET and PT both shift for DST so the offset is constant.)
+    if (ampm === 'pm' && hour < 12) hour += 12;
+    if (ampm === 'am' && hour === 12) hour = 0;
+    // ET -> PT (both observe DST, so the offset is a constant 3 hours).
     hour = (hour - 3 + 24) % 24;
     const isPM = hour >= 12;
     let h12 = hour % 12;
     if (h12 === 0) h12 = 12;
-    return h12 + ':' + minute.toString().padStart(2, '0') + (isPM ? 'p' : 'a') + ' PDT';
+    return h12 + ':' + minute.toString().padStart(2, '0') + (isPM ? 'p' : 'a') + ' PT';
   }
 
   function escapeHtml(s) {
