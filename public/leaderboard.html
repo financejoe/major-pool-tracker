@@ -450,7 +450,7 @@
   async function fetchScoreboard() {
     setSpinning(true);
     try {
-      const r = await fetch(ESPN_URL, { cache: 'no-store' });
+      const r = await fetch(ESPN_URL + '?_=' + Date.now(), { cache: 'no-store' });
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const json = await r.json();
       processData(json);
