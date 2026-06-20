@@ -389,6 +389,32 @@
     if (d.startsWith('+')) return 's-over';
     return '';
   }
+  function maybeShowReconcileBanner() {
+    try {
+      if (new URLSearchParams(location.search).get('debug') !== '1') return;
+      const info = window.__cutReconcile;
+      if (!info) return;
+      let el = document.getElementById('reconcile-banner');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'reconcile-banner';
+        el.style.cssText = 'position:sticky;top:0;z-index:9999;padding:8px 12px;font-size:12px;' +
+          'font-family:inherit;text-align:center;border-bottom:1px solid var(--border,#333);';
+        document.body.insertBefore(el, document.body.firstChild);
+      }
+      if (!info.mismatches || info.mismatches.length === 0) {
+        el.style.background = '#16331f'; el.style.color = '#3fb950';
+        el.textContent = 'Cut reconciliation OK: cut line +' + info.line + ' matches round-3 data.';
+      } else {
+        el.style.background = '#3a2a16'; el.style.color = '#e3b341';
+        const names = info.mismatches.map(m => m.player + ' (' + m.total36 + ', line says ' +
+          m.cutLineSays + ' / R3 says ' + m.round3Says + ')').join('; ');
+        el.textContent = 'Cut reconciliation: ' + info.mismatches.length +
+          ' disagree (deferring to round-3 data): ' + names;
+      }
+    } catch (_) {}
+  }
+
   function formatTeeTime(raw) {
     if (!raw) return null;
     const s = String(raw).trim();
@@ -455,36 +481,112 @@
     const tournamentRound = (event.status && event.status.period) ||
                             (comp && comp.status && comp.status.period) || null;
 
-    // Determine whether the 36-hole cut has been applied. ESPN exposes no status
-    // field on golf competitors. Before round 3 begins, ESPN seeds an EMPTY
-    // round-3 entry — literally {"period":3} with no holes and no score — for
-    // every player in the field. So merely having a period-3 object does NOT mean
-    // a player made the cut. We must check whether the round-3 entry is POPULATED
-    // (has hole-by-hole linescores or a real score value). Once the cut is in,
-    // made-cut players get a populated round-3 entry and missed-cut players keep
-    // only the empty shell (or have it removed).
-    const hasPopulatedR3 = (c) => (c.linescores || []).some(l =>
-      l && l.period === 3 && (
+    // ---- Cut detection with reconciliation ----
+    // See pool.html for the full explanation. Cut-line method (frozen at round-2
+    // complete) is primary through the round-3 populating window; switch to round-3
+    // data once reliable (>= CUT_PLACES players have R3 data), reconciling once.
+    const CUT_LINE = 4;       // U.S. Open 2026 cut fell at +4. Set to null to auto-compute.
+    const CUT_PLACES = 60;    // U.S. Open: low 60 and ties
+
+    const hasPopulatedRound = (c, period) => (c.linescores || []).some(l =>
+      l && l.period === period && (
         (Array.isArray(l.linescores) && l.linescores.length > 0) ||
         typeof l.value === 'number' ||
         (typeof l.displayValue === 'string' && l.displayValue.trim() !== '')
       )
     );
+    const hasPopulatedR3 = (c) => hasPopulatedRound(c, 3);
+    const parseToParStr = (s) => {
+      if (s === 'E' || s === '') return 0;
+      const m = String(s).match(/^([+-]?)(\d+)$/);
+      return m ? (m[1] === '-' ? -1 : 1) * parseInt(m[2], 10) : null;
+    };
+    const isWDStr = (s) => /\bWD\b/i.test(s);
+    const isDQStr = (s) => /\bDQ\b/i.test(s);
+    const toPar36 = (c) => {
+      const r1 = (c.linescores || []).find(l => l && l.period === 1);
+      const r2 = (c.linescores || []).find(l => l && l.period === 2);
+      if (!r1 || !r2) return null;
+      const v1 = typeof r1.displayValue === 'string' ? parseToParStr(r1.displayValue) : null;
+      const v2 = typeof r2.displayValue === 'string' ? parseToParStr(r2.displayValue) : null;
+      if (v1 === null || v2 === null) return null;
+      return v1 + v2;
+    };
+
+    const compStatus = (comp && comp.status) || {};
+    const round2Complete =
+      (compStatus.period >= 2 && compStatus.type && compStatus.type.completed === true) ||
+      (compStatus.period > 2);
 
     let withR3 = 0;
     raw.forEach(c => { if (hasPopulatedR3(c)) withR3++; });
-    const cutHasHappened = withR3 > 0 && withR3 < raw.length;
+    const round3Reliable = withR3 >= CUT_PLACES;
+
+    const cutState = (window.__leaderboardCut = window.__leaderboardCut || { line: null, reconciled: false });
+    if (round2Complete && cutState.line === null) {
+      if (typeof CUT_LINE === 'number') {
+        cutState.line = CUT_LINE;
+      } else if (!round3Reliable) {
+        const totals = raw
+          .filter(c => { const s = (c.score || '').toString(); return !isWDStr(s) && !isDQStr(s); })
+          .map(toPar36)
+          .filter(v => v !== null)
+          .sort((a, b) => a - b);
+        if (totals.length >= CUT_PLACES) cutState.line = totals[CUT_PLACES - 1];
+        else if (totals.length > 0) cutState.line = totals[totals.length - 1];
+      }
+    }
+    const frozenCutLine = cutState.line;
+
+    if (round3Reliable && frozenCutLine !== null && !cutState.reconciled) {
+      const mismatches = [];
+      raw.forEach(c => {
+        const s = (c.score || '').toString();
+        if (isWDStr(s) || isDQStr(s)) return;
+        const t36 = toPar36(c);
+        if (t36 === null) return;
+        const cutLineSaysMissed = t36 > frozenCutLine;
+        const round3SaysMissed = !hasPopulatedR3(c);
+        if (cutLineSaysMissed !== round3SaysMissed) {
+          mismatches.push({
+            player: (c.athlete && c.athlete.displayName) || '?',
+            total36: t36, cutLine: frozenCutLine,
+            cutLineSays: cutLineSaysMissed ? 'MISSED' : 'made',
+            round3Says: round3SaysMissed ? 'MISSED' : 'made'
+          });
+        }
+      });
+      if (mismatches.length === 0) {
+        console.log('[cut reconciliation] OK — cut line +' + frozenCutLine +
+          ' agrees with round-3 data for all players (' + withR3 + ' made the cut).');
+      } else {
+        console.warn('[cut reconciliation] ' + mismatches.length +
+          ' player(s) disagree between the cut-line (+' + frozenCutLine +
+          ') and round-3 methods. Deferring to round-3 data (ground truth):', mismatches);
+      }
+      cutState.reconciled = true;
+      window.__cutReconcile = { pool: 'leaderboard', line: frozenCutLine, mismatches, at: new Date().toISOString() };
+      maybeShowReconcileBanner();
+    }
 
     const list = [];
     raw.forEach(c => {
       const athlete = c.athlete || {};
       const scoreStr = (c.score || '').toString();
-      const isWD = /\bWD\b/i.test(scoreStr);
-      const isDQ = /\bDQ\b/i.test(scoreStr);
-      // Missed cut: the cut has been applied and this player has no populated
-      // round-3 entry (only the empty placeholder shell, or none at all).
-      const hasR3 = hasPopulatedR3(c);
-      const isCut = cutHasHappened && !isWD && !isDQ && !hasR3;
+      const isWD = isWDStr(scoreStr);
+      const isDQ = isDQStr(scoreStr);
+
+      let isCut;
+      if (round3Reliable) {
+        const cutHasHappened = withR3 > 0 && withR3 < raw.length;
+        isCut = cutHasHappened && !isWD && !isDQ && !hasPopulatedR3(c);
+      } else if (frozenCutLine !== null) {
+        const t36 = toPar36(c);
+        isCut = !isWD && !isDQ && t36 !== null && t36 > frozenCutLine;
+      } else {
+        const cutHasHappened = withR3 > 0 && withR3 < raw.length;
+        isCut = cutHasHappened && !isWD && !isDQ && !hasPopulatedR3(c);
+      }
       const isOut = isCut || isWD || isDQ;
 
       let toPar = null;
