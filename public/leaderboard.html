@@ -576,18 +576,21 @@
       const isWD = isWDStr(scoreStr);
       const isDQ = isDQStr(scoreStr);
 
+      // Structural withdrawal (see pool.html): round 2 complete but no 36-hole score.
+      const t36 = toPar36(c);
+      const structuralWD = round2Complete && !isWD && !isDQ && t36 === null;
+
       let isCut;
       if (round3Reliable) {
         const cutHasHappened = withR3 > 0 && withR3 < raw.length;
-        isCut = cutHasHappened && !isWD && !isDQ && !hasPopulatedR3(c);
+        isCut = cutHasHappened && !isWD && !isDQ && !structuralWD && !hasPopulatedR3(c);
       } else if (frozenCutLine !== null) {
-        const t36 = toPar36(c);
-        isCut = !isWD && !isDQ && t36 !== null && t36 > frozenCutLine;
+        isCut = !isWD && !isDQ && !structuralWD && t36 !== null && t36 > frozenCutLine;
       } else {
         const cutHasHappened = withR3 > 0 && withR3 < raw.length;
-        isCut = cutHasHappened && !isWD && !isDQ && !hasPopulatedR3(c);
+        isCut = cutHasHappened && !isWD && !isDQ && !structuralWD && !hasPopulatedR3(c);
       }
-      const isOut = isCut || isWD || isDQ;
+      const isOut = isCut || isWD || isDQ || structuralWD;
 
       let toPar = null;
       if (scoreStr === 'E' || scoreStr === '') toPar = 0;
@@ -654,7 +657,7 @@
         flagAlt: (athlete.flag && athlete.flag.alt) || '',
         toPar,
         isOut,
-        outLabel: isCut ? 'MC' : (isWD ? 'WD' : (isDQ ? 'DQ' : null)),
+        outLabel: isCut ? 'MC' : ((isWD || structuralWD) ? 'WD' : (isDQ ? 'DQ' : null)),
         hasStarted,
         todayScore,
         thru,
