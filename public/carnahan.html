@@ -676,14 +676,6 @@
     // complete, 36-hole total read from R1+R2 line scores) is primary through the
     // round-3 populating window; switch to round-3 data once reliable (>= CUT_PLACES
     // players have R3 data), reconciling the two methods once and logging any diff.
-    const hasPopulatedRound = (c, period) => (c.linescores || []).some(l =>
-      l && l.period === period && (
-        (Array.isArray(l.linescores) && l.linescores.length > 0) ||
-        typeof l.value === 'number' ||
-        (typeof l.displayValue === 'string' && l.displayValue.trim() !== '')
-      )
-    );
-    const hasPopulatedR3 = (c) => hasPopulatedRound(c, 3);
     const parseToParStr = (s) => {
       if (s === 'E' || s === '') return 0;
       const m = String(s).match(/^([+-]?)(\d+)$/);
@@ -691,6 +683,16 @@
     };
     const isWDStr = (s) => /\bWD\b/i.test(s);
     const isDQStr = (s) => /\bDQ\b/i.test(s);
+    // A round counts as POPULATED only if actually played: real hole linescores or a
+    // parseable to-par round score. A tee-time-only entry (value 0, displayValue "-")
+    // does NOT count, so round3Reliable won't flip before players have teed off.
+    const hasPopulatedRound = (c, period) => (c.linescores || []).some(l =>
+      l && l.period === period && (
+        (Array.isArray(l.linescores) && l.linescores.length > 0) ||
+        (typeof l.displayValue === 'string' && parseToParStr(l.displayValue) !== null)
+      )
+    );
+    const hasPopulatedR3 = (c) => hasPopulatedRound(c, 3);
     const toPar36 = (c) => {
       const r1 = (c.linescores || []).find(l => l && l.period === 1);
       const r2 = (c.linescores || []).find(l => l && l.period === 2);
@@ -726,7 +728,11 @@
     }
     const frozenCutLine = cutState.line;
 
-    if (round3Reliable && frozenCutLine !== null && !cutState.reconciled) {
+    // Reconcile only once round 3 is actually complete (see pool.html).
+    const round3Complete =
+      (compStatus.period >= 3 && compStatus.type && compStatus.type.completed === true) ||
+      (compStatus.period > 3);
+    if (round3Complete && frozenCutLine !== null && !cutState.reconciled) {
       const mismatches = [];
       raw.forEach(c => {
         const s = (c.score || '').toString();
@@ -746,11 +752,12 @@
       });
       if (mismatches.length === 0) {
         console.log('[cut reconciliation] OK — cut line +' + frozenCutLine +
-          ' agrees with round-3 data for all players (' + withR3 + ' made the cut).');
+          ' agrees with round-3 data for all players.');
       } else {
         console.warn('[cut reconciliation] ' + mismatches.length +
           ' player(s) disagree between the cut-line (+' + frozenCutLine +
-          ') and round-3 methods. Deferring to round-3 data (ground truth):', mismatches);
+          ') and round-3 data. The line drives the display; if it is wrong, update ' +
+          'CUT_LINE in the config:', mismatches);
       }
       cutState.reconciled = true;
       window.__cutReconcile = { pool: 'carnahan', line: frozenCutLine, mismatches, at: new Date().toISOString() };
@@ -768,14 +775,14 @@
       const t36 = toPar36(c);
       const structuralWD = round2Complete && !isWD && !isDQ && t36 === null;
 
+      // Primary verdict: the FROZEN CUT LINE whenever we have one (see pool.html).
+      // It is not fooled by made-cut players who haven't teed off round 3 yet. The
+      // round-3 method is only a fallback when no line was ever established.
       let isCut;
-      if (round3Reliable) {
-        const cutHasHappened = withR3 > 0 && withR3 < raw.length;
-        isCut = cutHasHappened && !isWD && !isDQ && !structuralWD && !hasPopulatedR3(c);
-      } else if (frozenCutLine !== null) {
+      if (frozenCutLine !== null) {
         isCut = !isWD && !isDQ && !structuralWD && t36 !== null && t36 > frozenCutLine;
       } else {
-        const cutHasHappened = withR3 > 0 && withR3 < raw.length;
+        const cutHasHappened = round3Reliable && withR3 < raw.length;
         isCut = cutHasHappened && !isWD && !isDQ && !structuralWD && !hasPopulatedR3(c);
       }
       const isOut = isCut || isWD || isDQ || structuralWD;
