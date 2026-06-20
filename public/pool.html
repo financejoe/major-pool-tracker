@@ -810,20 +810,27 @@
       const isWD = isWDStr(scoreStr);
       const isDQ = isDQStr(scoreStr);
 
+      // Structural withdrawal: once round 2 is officially complete, a player who
+      // never posted a 36-hole score (no valid round-1+round-2 total) has withdrawn
+      // or otherwise didn't finish. ESPN does NOT always put "WD" in the score — e.g.
+      // Jason Day showed "+7" with a 10-hole round 1 and an empty round 2 — so we
+      // detect it structurally. Treated as a missed cut (Option B scoring).
+      const t36 = toPar36(c);
+      const structuralWD = round2Complete && !isWD && !isDQ && t36 === null;
+
       // Primary verdict: round-3 data once reliable, else the frozen cut line.
       let isCut;
       if (round3Reliable) {
         const cutHasHappened = withR3 > 0 && withR3 < raw.length;
-        isCut = cutHasHappened && !isWD && !isDQ && !hasPopulatedR3(c);
+        isCut = cutHasHappened && !isWD && !isDQ && !structuralWD && !hasPopulatedR3(c);
       } else if (frozenCutLine !== null) {
-        const t36 = toPar36(c);
-        isCut = !isWD && !isDQ && t36 !== null && t36 > frozenCutLine;
+        isCut = !isWD && !isDQ && !structuralWD && t36 !== null && t36 > frozenCutLine;
       } else {
         // No line yet and round 3 not reliable: best-effort backstop.
         const cutHasHappened = withR3 > 0 && withR3 < raw.length;
-        isCut = cutHasHappened && !isWD && !isDQ && !hasPopulatedR3(c);
+        isCut = cutHasHappened && !isWD && !isDQ && !structuralWD && !hasPopulatedR3(c);
       }
-      const isOut = isCut || isWD || isDQ;
+      const isOut = isCut || isWD || isDQ || structuralWD;
 
       let toPar = null;
       if (!isOut) {
@@ -904,7 +911,7 @@
         if (isOut) {
           // Match the formula used in effectiveScoreForPlayer so prior == current for out players
           if (toPar !== null) {
-            const missedOut = Math.max(0, TOTAL_ROUNDS - completedRounds);
+            const missedOut = TOTAL_ROUNDS - 2;
             priorEffective = toPar + missedOut * PENALTY_PER_MISSED_ROUND;
           }
         } else {
@@ -926,7 +933,7 @@
         id: athlete.id || c.id,
         name: athlete.displayName || athlete.fullName || 'Unknown',
         toPar, isOut,
-        outLabel: isCut ? 'MC' : (isWD ? 'WD' : (isDQ ? 'DQ' : null)),
+        outLabel: isCut ? 'MC' : ((isWD || structuralWD) ? 'WD' : (isDQ ? 'DQ' : null)),
         rounds,
         completedRounds,
         priorEffective,
@@ -973,7 +980,10 @@
 
     if (player.isOut) {
       const base = (player.toPar === null || player.toPar === undefined) ? 0 : player.toPar;
-      const missed = Math.max(0, TOTAL_ROUNDS - player.completedRounds);
+      // Option B: every out player (MC or WD) is penalized for the weekend rounds
+      // only (rounds after the 36-hole cut), regardless of how many rounds they
+      // actually completed. So a withdrawal is scored identically to a missed cut.
+      const missed = TOTAL_ROUNDS - 2;
       return base + missed * PENALTY_PER_MISSED_ROUND;
     }
 
