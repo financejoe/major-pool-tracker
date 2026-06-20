@@ -711,15 +711,12 @@
     // switch we RECONCILE the two methods and log any disagreement once. Because we
     // defer to round-3 data once it's reliable, a wrong cut line self-corrects.
 
-    const hasPopulatedRound = (c, period) => (c.linescores || []).some(l =>
-      l && l.period === period && (
-        (Array.isArray(l.linescores) && l.linescores.length > 0) ||
-        typeof l.value === 'number' ||
-        (typeof l.displayValue === 'string' && l.displayValue.trim() !== '')
-      )
-    );
-    const hasPopulatedR3 = (c) => hasPopulatedRound(c, 3);
-
+    // A round counts as POPULATED only if the player has actually played it: either
+    // real hole-by-hole linescores, or a parseable to-par round score. A tee-time-only
+    // entry (value 0, displayValue "-") is NOT populated — ESPN seeds those for every
+    // made-cut player the moment the next round's tee sheet is set, before anyone has
+    // teed off. The old `typeof value === 'number'` clause wrongly counted those
+    // (value 0 is a number), which would prematurely flip round3Reliable.
     const parseToParStr = (s) => {
       if (s === 'E' || s === '') return 0;
       const m = String(s).match(/^([+-]?)(\d+)$/);
@@ -727,6 +724,14 @@
     };
     const isWDStr = (s) => /\bWD\b/i.test(s);
     const isDQStr = (s) => /\bDQ\b/i.test(s);
+
+    const hasPopulatedRound = (c, period) => (c.linescores || []).some(l =>
+      l && l.period === period && (
+        (Array.isArray(l.linescores) && l.linescores.length > 0) ||
+        (typeof l.displayValue === 'string' && parseToParStr(l.displayValue) !== null)
+      )
+    );
+    const hasPopulatedR3 = (c) => hasPopulatedRound(c, 3);
 
     // 36-hole to-par from the round-1 and round-2 line scores (independent of the
     // live score, which changes once round 3 starts). Returns null if not through 36.
@@ -771,8 +776,14 @@
     }
     const frozenCutLine = cutState.line;
 
-    // Reconcile once round 3 is reliable and we have a frozen line to compare against.
-    if (round3Reliable && frozenCutLine !== null && !cutState.reconciled) {
+    // Reconcile the cut line against round-3 data, but ONLY once round 3 is actually
+    // complete. Before that, a made-cut player who simply hasn't teed off (or is mid
+    // round) has no populated round-3 entry, which would look like a false mismatch.
+    // Once round 3 is complete, a missing round-3 entry genuinely means missed cut.
+    const round3Complete =
+      (compStatus.period >= 3 && compStatus.type && compStatus.type.completed === true) ||
+      (compStatus.period > 3);
+    if (round3Complete && frozenCutLine !== null && !cutState.reconciled) {
       const mismatches = [];
       raw.forEach(c => {
         const s = (c.score || '').toString();
@@ -792,11 +803,12 @@
       });
       if (mismatches.length === 0) {
         console.log('[cut reconciliation] OK — cut line +' + frozenCutLine +
-          ' agrees with round-3 data for all players (' + withR3 + ' made the cut).');
+          ' agrees with round-3 data for all players.');
       } else {
         console.warn('[cut reconciliation] ' + mismatches.length +
           ' player(s) disagree between the cut-line (+' + frozenCutLine +
-          ') and round-3 methods. Deferring to round-3 data (ground truth):', mismatches);
+          ') and round-3 data. The line drives the display; if it is wrong, update ' +
+          'CUT_LINE in the config:', mismatches);
       }
       cutState.reconciled = true;
       window.__cutReconcile = { pool: 'kiernan', line: frozenCutLine, mismatches, at: new Date().toISOString() };
@@ -818,16 +830,19 @@
       const t36 = toPar36(c);
       const structuralWD = round2Complete && !isWD && !isDQ && t36 === null;
 
-      // Primary verdict: round-3 data once reliable, else the frozen cut line.
+      // Primary verdict: the FROZEN CUT LINE whenever we have one. It knows who made
+      // the cut from their 36-hole total, and unlike the round-3 method it is NOT
+      // fooled by a made-cut player who simply hasn't teed off round 3 yet (such a
+      // player has no populated round-3 entry but is NOT cut). The round-3 method is
+      // used only as a fallback when no cut line was ever established (e.g. the page
+      // first loaded after round 3 had already begun, so we never froze a line).
       let isCut;
-      if (round3Reliable) {
-        const cutHasHappened = withR3 > 0 && withR3 < raw.length;
-        isCut = cutHasHappened && !isWD && !isDQ && !structuralWD && !hasPopulatedR3(c);
-      } else if (frozenCutLine !== null) {
+      if (frozenCutLine !== null) {
         isCut = !isWD && !isDQ && !structuralWD && t36 !== null && t36 > frozenCutLine;
       } else {
-        // No line yet and round 3 not reliable: best-effort backstop.
-        const cutHasHappened = withR3 > 0 && withR3 < raw.length;
+        // Fallback: infer from round-3 data, but only once it's reliable enough that
+        // essentially all made-cut players have teed off (>= CUT_PLACES populated).
+        const cutHasHappened = round3Reliable && withR3 < raw.length;
         isCut = cutHasHappened && !isWD && !isDQ && !structuralWD && !hasPopulatedR3(c);
       }
       const isOut = isCut || isWD || isDQ || structuralWD;
