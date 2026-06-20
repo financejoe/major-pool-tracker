@@ -455,14 +455,24 @@
     const tournamentRound = (event.status && event.status.period) ||
                             (comp && comp.status && comp.status.period) || null;
 
-    // Determine whether the 36-hole cut has been applied. ESPN exposes no status field
-    // on golf competitors; instead it creates a round-3 linescores entry for players who
-    // made the cut and omits it entirely for players who missed. The cut is "in" once some
-    // players have a round-3 entry and some do not.
+    // Determine whether the 36-hole cut has been applied. ESPN exposes no status
+    // field on golf competitors. Before round 3 begins, ESPN seeds an EMPTY
+    // round-3 entry — literally {"period":3} with no holes and no score — for
+    // every player in the field. So merely having a period-3 object does NOT mean
+    // a player made the cut. We must check whether the round-3 entry is POPULATED
+    // (has hole-by-hole linescores or a real score value). Once the cut is in,
+    // made-cut players get a populated round-3 entry and missed-cut players keep
+    // only the empty shell (or have it removed).
+    const hasPopulatedR3 = (c) => (c.linescores || []).some(l =>
+      l && l.period === 3 && (
+        (Array.isArray(l.linescores) && l.linescores.length > 0) ||
+        typeof l.value === 'number' ||
+        (typeof l.displayValue === 'string' && l.displayValue.trim() !== '')
+      )
+    );
+
     let withR3 = 0;
-    raw.forEach(c => {
-      if ((c.linescores || []).some(l => l && l.period === 3)) withR3++;
-    });
+    raw.forEach(c => { if (hasPopulatedR3(c)) withR3++; });
     const cutHasHappened = withR3 > 0 && withR3 < raw.length;
 
     const list = [];
@@ -471,8 +481,9 @@
       const scoreStr = (c.score || '').toString();
       const isWD = /\bWD\b/i.test(scoreStr);
       const isDQ = /\bDQ\b/i.test(scoreStr);
-      // Missed cut: the cut has been applied and ESPN omitted this player's round-3 entry.
-      const hasR3 = (c.linescores || []).some(l => l && l.period === 3);
+      // Missed cut: the cut has been applied and this player has no populated
+      // round-3 entry (only the empty placeholder shell, or none at all).
+      const hasR3 = hasPopulatedR3(c);
       const isCut = cutHasHappened && !isWD && !isDQ && !hasR3;
       const isOut = isCut || isWD || isDQ;
 
